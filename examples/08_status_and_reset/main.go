@@ -15,7 +15,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/Crush251/pcanbasic_go"
+	"github.com/Crush251/can_go"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("unknown channel: %s", *chName)
 	}
 
-	bus, err := pcanbasic.Open(ch, pcanbasic.WithBitrate(pcanbasic.Baud500K))
+	bus, err := can.Open(ch, can.WithBitrate(can.Baud500K))
 	if err != nil {
 		log.Fatalf("open: %v", err)
 	}
@@ -51,15 +51,15 @@ func main() {
 			}
 			log.Printf("status=0x%X (BUSOFF=%v BUSHEAVY=%v BUSPASSIVE=%v)",
 				uint32(s),
-				pcanbasic.StatusHas(s, pcanbasic.StatusBusOff),
-				pcanbasic.StatusHas(s, pcanbasic.StatusBusHeavy),
-				pcanbasic.StatusHas(s, pcanbasic.StatusBusPassive),
+				can.StatusHas(s, can.StatusBusOff),
+				can.StatusHas(s, can.StatusBusHeavy),
+				can.StatusHas(s, can.StatusBusPassive),
 			)
-			if pcanbasic.StatusHas(s, pcanbasic.StatusBusOff) {
+			if can.StatusHas(s, can.StatusBusOff) {
 				log.Println("BUSOFF detected, calling Reset...")
 				if err := bus.Reset(); err != nil {
 					// 已关闭场景下也会落到这里
-					if errors.Is(err, pcanbasic.ErrBusClosed) {
+					if errors.Is(err, can.ErrBusClosed) {
 						return
 					}
 					log.Printf("reset err: %v", err)
@@ -69,12 +69,12 @@ func main() {
 	}
 }
 
-func lookupChannel(name string) (pcanbasic.Channel, bool) {
+func lookupChannel(name string) (can.Channel, bool) {
 	switch name {
 	case "USBBus1":
-		return pcanbasic.USBBus1, true
+		return can.USBBus1, true
 	case "USBBus2":
-		return pcanbasic.USBBus2, true
+		return can.USBBus2, true
 	}
 	return 0, false
 }

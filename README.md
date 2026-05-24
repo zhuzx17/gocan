@@ -1,20 +1,20 @@
-# pcanbasic_go
+# can_go
 
 > PEAK-System **PCANBasic.dll** 的 Go 语言封装库（Windows 专用）。
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/Crush251/pcanbasic_go.svg)](https://pkg.go.dev/github.com/Crush251/pcanbasic_go)
-[![CI](https://github.com/Crush251/pcanbasic_go/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Crush251/pcanbasic_go/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/Crush251/pcanbasic_go/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/Crush251/pcanbasic_go/actions/workflows/codeql.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Crush251/pcanbasic_go)](https://goreportcard.com/report/github.com/Crush251/pcanbasic_go)
-[![codecov](https://codecov.io/gh/Crush251/pcanbasic_go/branch/main/graph/badge.svg)](https://codecov.io/gh/Crush251/pcanbasic_go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/Crush251/can_go.svg)](https://pkg.go.dev/github.com/Crush251/can_go)
+[![CI](https://github.com/Crush251/can_go/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Crush251/can_go/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Crush251/can_go/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/Crush251/can_go/actions/workflows/codeql.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Crush251/can_go)](https://goreportcard.com/report/github.com/Crush251/can_go)
+[![codecov](https://codecov.io/gh/Crush251/can_go/branch/main/graph/badge.svg)](https://codecov.io/gh/Crush251/can_go)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`pcanbasic_go` 在 Windows 平台用纯 Go（`syscall` 调用，无 CGO）封装 PEAK-System 的
+`can_go` 在 Windows 平台用纯 Go（`syscall` 调用，无 CGO）封装 PEAK-System 的
 `PCANBasic.dll`，让 Go 程序能直接收发 CAN / CAN FD 报文，无须再依赖 Python 或 C++ 中间层。
 
 > ⚠️ **当前为预发布阶段**（`v0.x`），API 仍可能调整。本仓库目前处于**初始化阶段**，
 > 完整设计见
-> [docs/superpowers/specs/2026-05-22-pcanbasic-go-design.md](docs/superpowers/specs/2026-05-22-pcanbasic-go-design.md)。
+> [docs/superpowers/specs/2026-05-22-can-go-design.md](docs/superpowers/specs/2026-05-22-can-go-design.md)。
 
 ---
 
@@ -25,7 +25,7 @@
 - 现有的 Python 桥接（`can-bridge-win`）需要打包 `PyInstaller`、引入 `python-can` 依赖，
   在嵌入到机器人控制等纯 Go 项目时既笨重又难以追踪问题
 
-`pcanbasic_go` 旨在补上这块空缺，作为未来跨平台 CAN 抽象层（Linux 走 socketcan、
+`can_go` 旨在补上这块空缺，作为未来跨平台 CAN 抽象层（Linux 走 socketcan、
 Windows 走 PCANBasic）的 Windows 后端。
 
 ---
@@ -40,7 +40,7 @@ Windows 走 PCANBasic）的 Windows 后端。
 - ✅ 非 Windows 平台编译桩，便于 Linux/macOS 上做 lint / vet / 单元测试
 - ✅ 完整的中文文档与 10 个示例
 
-详细范围见 [设计文档](docs/superpowers/specs/2026-05-22-pcanbasic-go-design.md)。
+详细范围见 [设计文档](docs/superpowers/specs/2026-05-22-can-go-design.md)。
 
 ---
 
@@ -53,20 +53,20 @@ import (
     "context"
     "log"
 
-    "github.com/Crush251/pcanbasic_go"
+    "github.com/Crush251/can_go"
 )
 
 func main() {
-    bus, err := pcanbasic.Open(
-        pcanbasic.USBBus1,
-        pcanbasic.WithBitrate(pcanbasic.Baud1M),
+    bus, err := can.Open(
+        can.USBBus1,
+        can.WithBitrate(can.Baud1M),
     )
     if err != nil {
         log.Fatal(err)
     }
     defer bus.Close()
 
-    frame, _ := pcanbasic.NewFrame(0x123, []byte{0x01, 0x02, 0x03, 0x04})
+    frame, _ := can.NewFrame(0x123, []byte{0x01, 0x02, 0x03, 0x04})
     if err := bus.Send(context.Background(), frame); err != nil {
         log.Fatal(err)
     }

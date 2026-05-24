@@ -1,4 +1,4 @@
-# pcanbasic_go 开发常用命令。
+# can_go 开发常用命令。
 # 安装 just: https://just.systems  (`brew install just` / `cargo install just` / `apt install just`)
 # 列出所有任务: `just --list`
 
@@ -39,8 +39,12 @@ build-cross:
 # 本地完整 CI：push 前先跑这个，全绿才推
 ci: lint test build-cross
     @echo "==> go mod tidy"
-    go mod tidy
-    git diff --exit-code go.mod go.sum
+    @cp go.mod .go.mod.before
+    @if [ -f go.sum ]; then cp go.sum .go.sum.before; else touch .go.sum.before; fi
+    @go mod tidy
+    @cmp -s go.mod .go.mod.before || (echo "go.mod is not tidy"; rm -f .go.mod.before .go.sum.before; exit 1)
+    @if [ -f go.sum ]; then cmp -s go.sum .go.sum.before || (echo "go.sum is not tidy"; rm -f .go.mod.before .go.sum.before; exit 1); fi
+    @rm -f .go.mod.before .go.sum.before
     @echo "✅ 本地 CI 通过，可以 push"
 
 # 清理本地产物

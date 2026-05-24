@@ -1,9 +1,9 @@
-package pcanbasic
+package can
 
 import (
 	"unsafe"
 
-	"github.com/Crush251/pcanbasic_go/raw"
+	"github.com/Crush251/can_go/raw"
 )
 
 // rawAdapter 是 Bus 用到的底层调用接口抽象，便于测试时注入 fake。

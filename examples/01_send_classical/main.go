@@ -11,7 +11,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/Crush251/pcanbasic_go"
+	"github.com/Crush251/can_go"
 )
 
 func main() {
@@ -23,13 +23,13 @@ func main() {
 		log.Fatalf("unknown channel: %s", *chName)
 	}
 
-	bus, err := pcanbasic.Open(ch, pcanbasic.WithBitrate(pcanbasic.Baud1M))
+	bus, err := can.Open(ch, can.WithBitrate(can.Baud1M))
 	if err != nil {
 		log.Fatalf("open: %v", err)
 	}
 	defer bus.Close()
 
-	frame, err := pcanbasic.NewFrame(0x123, []byte{0x01, 0x02, 0x03, 0x04})
+	frame, err := can.NewFrame(0x123, []byte{0x01, 0x02, 0x03, 0x04})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,24 +39,24 @@ func main() {
 	log.Printf("sent: id=0x%X data=%X", frame.ID, frame.Data)
 }
 
-func lookupChannel(name string) (pcanbasic.Channel, bool) {
+func lookupChannel(name string) (can.Channel, bool) {
 	switch name {
 	case "USBBus1":
-		return pcanbasic.USBBus1, true
+		return can.USBBus1, true
 	case "USBBus2":
-		return pcanbasic.USBBus2, true
+		return can.USBBus2, true
 	case "USBBus3":
-		return pcanbasic.USBBus3, true
+		return can.USBBus3, true
 	case "USBBus4":
-		return pcanbasic.USBBus4, true
+		return can.USBBus4, true
 	case "USBBus5":
-		return pcanbasic.USBBus5, true
+		return can.USBBus5, true
 	case "USBBus6":
-		return pcanbasic.USBBus6, true
+		return can.USBBus6, true
 	case "USBBus7":
-		return pcanbasic.USBBus7, true
+		return can.USBBus7, true
 	case "USBBus8":
-		return pcanbasic.USBBus8, true
+		return can.USBBus8, true
 	}
 	return 0, false
 }

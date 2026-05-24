@@ -1,6 +1,6 @@
-package pcanbasic
+package can
 
-import "github.com/Crush251/pcanbasic_go/raw"
+import "github.com/Crush251/can_go/raw"
 
 // Status 是 PCAN 通道当前状态的位掩码值。
 //

@@ -14,7 +14,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/Crush251/pcanbasic_go"
+	"github.com/Crush251/can_go"
 )
 
 func main() {
@@ -26,14 +26,14 @@ func main() {
 		log.Fatalf("unknown channel: %s", *chName)
 	}
 
-	bus, err := pcanbasic.Open(ch, pcanbasic.WithBitrate(pcanbasic.Baud500K))
+	bus, err := can.Open(ch, can.WithBitrate(can.Baud500K))
 	if err != nil {
 		log.Fatalf("open: %v", err)
 	}
 	defer bus.Close()
 
 	// 只接收 ID 范围 [0x100, 0x1FF] 的标准帧。
-	if err := bus.SetFilter(0x100, 0x1FF, pcanbasic.FilterStandard); err != nil {
+	if err := bus.SetFilter(0x100, 0x1FF, can.FilterStandard); err != nil {
 		log.Fatalf("set filter: %v", err)
 	}
 	log.Println("filter set to [0x100, 0x1FF] standard")
@@ -61,12 +61,12 @@ func main() {
 	}
 }
 
-func lookupChannel(name string) (pcanbasic.Channel, bool) {
+func lookupChannel(name string) (can.Channel, bool) {
 	switch name {
 	case "USBBus1":
-		return pcanbasic.USBBus1, true
+		return can.USBBus1, true
 	case "USBBus2":
-		return pcanbasic.USBBus2, true
+		return can.USBBus2, true
 	}
 	return 0, false
 }
