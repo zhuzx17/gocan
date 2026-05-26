@@ -2,9 +2,9 @@
 //
 // 本包按 PCAN-Basic 官方头文件 PCANBasic.h 进行 1:1 映射，
 // 适合需要 PCAN 特殊功能（Trace、Flash、设备信息查询、任意 Parameter 读写等）
-// 或需要在 can 顶层包之外自行做更高层封装的用户。
+// 或需要在 gocan 顶层包之外自行做更高层封装的用户。
 //
-// 大多数应用建议直接使用顶层 github.com/Crush251/can_go 包。
+// 大多数应用建议直接使用顶层 github.com/Crush251/gocan 包。
 //
 // # 平台
 //
@@ -21,5 +21,5 @@
 // # 稳定性
 //
 // 在 v1.0.0 之前，本包签名跟随 PCANBasic 官方头文件演进可能发生小幅调整；
-// 顶层 can 包提供稳定的高层抽象。
+// 顶层 gocan 包提供稳定的高层抽象。
 package raw

@@ -1,4 +1,4 @@
-package can
+package gocan
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 )
 
 // Bus 表示一个已初始化的 CAN/CAN FD 通道。

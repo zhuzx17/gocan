@@ -1,4 +1,4 @@
-package can
+package gocan
 
 import (
 	"errors"

@@ -63,4 +63,4 @@
 - 测试覆盖率 80%+，`-race` 通过
 - GitHub Actions：Linux runner 跑 vet + golangci-lint + race test + 跨平台编译（windows/amd64+386）；Windows runner 跑 vet + 普通 test
 
-[0.1.0]: https://github.com/Crush251/can_go/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Crush251/gocan/releases/tag/v0.1.0

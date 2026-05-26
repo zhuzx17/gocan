@@ -1,10 +1,10 @@
-package can
+package gocan
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 )
 
 func TestError_Has_OKBoundary(t *testing.T) {

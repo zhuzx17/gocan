@@ -1,10 +1,10 @@
-package can
+package gocan
 
 import (
 	"errors"
 	"time"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 )
 
 // errQueueEmpty 是内部信号：底层报告"队列空"。

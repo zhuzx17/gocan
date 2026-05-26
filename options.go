@@ -1,9 +1,9 @@
-package can
+package gocan
 
 import (
 	"time"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 )
 
 // Channel 是 PCAN 通道句柄的别名，方便 Open 调用。

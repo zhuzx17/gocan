@@ -1,11 +1,11 @@
-# can_go 设计文档
+# gocan 设计文档
 
 - **版本**：v0.1.0 设计稿
 - **日期**：2026-05-22
 - **作者**：zhuzhixiang
-- **仓库**：`git@github.com:Crush251/can_go.git`
+- **仓库**：`git@github.com:Crush251/gocan.git`
 - **本地路径**：`/home/linkerhand/recode/Go_win_can/`
-- **Module path**：`github.com/Crush251/can_go`
+- **Module path**：`github.com/Crush251/gocan`
 
 ---
 
@@ -30,7 +30,7 @@ GitHub 上检索 `PCANBasic + Go` 当前**零开源仓库**，这是个明确的
 
 ### 1.2 目标
 
-构建一个**Windows 专用的 Go 版 PCANBasic 封装库** `can_go`，使 Go 程序无需
+构建一个**Windows 专用的 Go 版 PCANBasic 封装库** `gocan`，使 Go 程序无需
 经过 Python/C++ 中间层即可直接收发 CAN/CAN FD 报文。
 
 非目标（v0.1）：
@@ -56,9 +56,9 @@ GitHub 上检索 `PCANBasic + Go` 当前**零开源仓库**，这是个明确的
 ### 2.1 包结构
 
 ```
-github.com/Crush251/can_go         # 顶层高层 API
+github.com/Crush251/gocan         # 顶层高层 API
 ├── doc.go
-├── can.go        # Open / OpenFD
+├── gocan.go      # Open / OpenFD（如后续拆出入口文件；当前入口在 bus.go）
 ├── bus.go              # Bus 类型 + reader goroutine
 ├── frame.go            # Frame + 构造器
 ├── options.go          # Option 模式
@@ -79,7 +79,7 @@ github.com/Crush251/can_go         # 顶层高层 API
 用户代码
   │
   ▼
-can.Bus.Send(ctx, frame)
+gocan.Bus.Send(ctx, frame)
   │
   │  Frame → raw.TPCANMsg / TPCANMsgFD
   ▼
@@ -623,7 +623,7 @@ type rawAdapter interface {
 ```go
 //go:build pcanhardware
 
-package can_test
+package gocan_test
 ```
 
 - 运行：`go test -tags=pcanhardware ./...`
@@ -649,7 +649,7 @@ docs/
 ├── platform-support.md
 ├── hardware-test-setup.md
 ├── troubleshooting.md                                 # 含 FAQ
-└── superpowers/specs/2026-05-22-can-go-design.md
+└── superpowers/specs/2026-05-22-gocan-design.md
 ```
 
 所有公共类型/函数必须有中文 godoc，包括：用途、参数取值范围、返回错误清单、阻塞性、
@@ -732,7 +732,7 @@ jobs:
 2. git init -b main
 3. git config user.name "zhuzhixiang"            # 仓库级，确保署名一致
 4. git config user.email "1849346915@qq.com"
-5. git remote add origin git@github.com:Crush251/can_go.git
+5. git remote add origin git@github.com:Crush251/gocan.git
 6. 首次 commit：
      chore: initial repo scaffolding and design doc
    范围：LICENSE / README / CHANGELOG / .gitignore / go.mod / 设计文档
@@ -771,8 +771,8 @@ jobs:
 
 ## 10. 待办（spec 阶段不解决，留给 plan/实施）
 
-- [ ] FD 比特率字符串构造助手是否需要（如 `can.NewFDBitrate(...)`）
+- [ ] FD 比特率字符串构造助手是否需要（如 `gocan.NewFDBitrate(...)`）
 - [ ] `Logger` 接口最终签名（直接复用 `log/slog`？）
 - [ ] 真机 CI 自托管 runner 方案
 - [ ] `examples/10_using_raw` 选哪个 raw 功能演示（候选：GetValue 设备 ID / Hardware 版本）
-- [ ] 是否提供 `can.Available()` 探测 DLL 是否可用的工具函数
+- [ ] 是否提供 `gocan.Available()` 探测 DLL 是否可用的工具函数
