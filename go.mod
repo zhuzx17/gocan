@@ -1,4 +1,4 @@
-module github.com/Crush251/pcanbasic_go
+module github.com/Crush251/can_go
 
 go 1.22
 

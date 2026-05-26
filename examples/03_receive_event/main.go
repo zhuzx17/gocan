@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/Crush251/pcanbasic_go"
+	"github.com/Crush251/can_go"
 )
 
 func main() {
@@ -25,9 +25,9 @@ func main() {
 		log.Fatalf("unknown channel: %s", *chName)
 	}
 
-	bus, err := pcanbasic.Open(ch,
-		pcanbasic.WithBitrate(pcanbasic.Baud500K),
-		pcanbasic.WithReceiveMode(pcanbasic.ModeEvent),
+	bus, err := can.Open(ch,
+		can.WithBitrate(can.Baud500K),
+		can.WithReceiveMode(can.ModeEvent),
 	)
 	if err != nil {
 		log.Fatalf("open (event): %v — 非 Windows 平台请改用 ModePolling", err)
@@ -55,16 +55,16 @@ func main() {
 	}
 }
 
-func lookupChannel(name string) (pcanbasic.Channel, bool) {
+func lookupChannel(name string) (can.Channel, bool) {
 	switch name {
 	case "USBBus1":
-		return pcanbasic.USBBus1, true
+		return can.USBBus1, true
 	case "USBBus2":
-		return pcanbasic.USBBus2, true
+		return can.USBBus2, true
 	case "USBBus3":
-		return pcanbasic.USBBus3, true
+		return can.USBBus3, true
 	case "USBBus4":
-		return pcanbasic.USBBus4, true
+		return can.USBBus4, true
 	}
 	return 0, false
 }

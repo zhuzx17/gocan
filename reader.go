@@ -1,10 +1,10 @@
-package pcanbasic
+package can
 
 import (
 	"errors"
 	"time"
 
-	"github.com/Crush251/pcanbasic_go/raw"
+	"github.com/Crush251/can_go/raw"
 )
 
 // errQueueEmpty 是内部信号：底层报告"队列空"。

@@ -11,7 +11,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/Crush251/pcanbasic_go"
+	"github.com/Crush251/can_go"
 )
 
 // 80 MHz 时钟下的 1Mbit 仲裁 + 2Mbit 数据段示例参数。
@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("unknown channel: %s", *chName)
 	}
 
-	bus, err := pcanbasic.OpenFD(ch, fdBitrate)
+	bus, err := can.OpenFD(ch, fdBitrate)
 	if err != nil {
 		log.Fatalf("openFD: %v", err)
 	}
@@ -40,7 +40,7 @@ func main() {
 	for i := range data {
 		data[i] = byte(i)
 	}
-	fr, err := pcanbasic.NewFDFrame(0x456, data, true, false)
+	fr, err := can.NewFDFrame(0x456, data, true, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,12 +50,12 @@ func main() {
 	log.Printf("sent FD id=0x%X len=%d brs=true", fr.ID, len(fr.Data))
 }
 
-func lookupChannel(name string) (pcanbasic.Channel, bool) {
+func lookupChannel(name string) (can.Channel, bool) {
 	switch name {
 	case "USBBus1":
-		return pcanbasic.USBBus1, true
+		return can.USBBus1, true
 	case "USBBus2":
-		return pcanbasic.USBBus2, true
+		return can.USBBus2, true
 	}
 	return 0, false
 }

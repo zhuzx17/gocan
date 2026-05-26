@@ -2,7 +2,7 @@
 
 ## DLL 找不到
 
-**症状**：`Open` 返回 `pcanbasic: PCANBasic.dll not found or failed to load`，或调用任何 API 返回 `ErrNoDriver`。
+**症状**：`Open` 返回 `can: PCANBasic.dll not found or failed to load`，或调用任何 API 返回 `ErrNoDriver`。
 
 **原因 + 修复**：
 
@@ -37,7 +37,7 @@
 总线进入 off 状态，需要主动 `Reset`：
 
 ```go
-if errors.Is(err, pcanbasic.ErrBusOff) {
+if errors.Is(err, can.ErrBusOff) {
     _ = bus.Reset()
     // 真实工程里还要重发握手帧、重设过滤器
 }
@@ -65,7 +65,7 @@ if errors.Is(err, pcanbasic.ErrBusOff) {
 ```go
 for {
     err := bus.Send(ctx, fr)
-    if errors.Is(err, pcanbasic.ErrQueueXmtFull) {
+    if errors.Is(err, can.ErrQueueXmtFull) {
         time.Sleep(time.Millisecond)
         continue
     }

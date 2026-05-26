@@ -13,17 +13,17 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/Crush251/pcanbasic_go"
+	"github.com/Crush251/can_go"
 )
 
 func main() {
-	bus1, err := pcanbasic.Open(pcanbasic.USBBus1, pcanbasic.WithBitrate(pcanbasic.Baud500K))
+	bus1, err := can.Open(can.USBBus1, can.WithBitrate(can.Baud500K))
 	if err != nil {
 		log.Fatalf("open USBBus1: %v", err)
 	}
 	defer bus1.Close()
 
-	bus2, err := pcanbasic.Open(pcanbasic.USBBus2, pcanbasic.WithBitrate(pcanbasic.Baud500K))
+	bus2, err := can.Open(can.USBBus2, can.WithBitrate(can.Baud500K))
 	if err != nil {
 		log.Fatalf("open USBBus2: %v", err)
 	}
@@ -40,7 +40,7 @@ func main() {
 	log.Println("both pumps exited")
 }
 
-func pump(ctx context.Context, wg *sync.WaitGroup, tag string, bus *pcanbasic.Bus) {
+func pump(ctx context.Context, wg *sync.WaitGroup, tag string, bus *can.Bus) {
 	defer wg.Done()
 	for {
 		fr, err := bus.ReadOne(ctx)

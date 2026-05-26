@@ -1,4 +1,4 @@
-package pcanbasic
+package can
 
 import (
 	"time"

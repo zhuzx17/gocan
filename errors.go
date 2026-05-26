@@ -1,66 +1,66 @@
-package pcanbasic
+package can
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/Crush251/pcanbasic_go/raw"
+	"github.com/Crush251/can_go/raw"
 )
 
 // 库内部错误（参数校验、状态等）。
 var (
 	// ErrIDOutOfRange 表示 CAN ID 超出范围（标准 11 位 / 扩展 29 位）。
-	ErrIDOutOfRange = errors.New("pcanbasic: CAN ID out of range")
+	ErrIDOutOfRange = errors.New("can: CAN ID out of range")
 	// ErrDataTooLong 表示数据长度超过该帧类型允许的最大长度。
-	ErrDataTooLong = errors.New("pcanbasic: data length exceeds capacity")
+	ErrDataTooLong = errors.New("can: data length exceeds capacity")
 	// ErrInvalidFDLength 表示 FD 帧 data 长度不在 {0..8, 12, 16, 20, 24, 32, 48, 64} 中。
-	ErrInvalidFDLength = errors.New("pcanbasic: invalid CAN FD data length")
+	ErrInvalidFDLength = errors.New("can: invalid CAN FD data length")
 	// ErrRemoteOnFD 表示在 FD 帧上指定了 Remote 标志（FD 协议无 RTR）。
-	ErrRemoteOnFD = errors.New("pcanbasic: remote frame not allowed on CAN FD")
+	ErrRemoteOnFD = errors.New("can: remote frame not allowed on CAN FD")
 	// ErrBusClosed 表示 Bus 已被关闭，后续操作非法。
-	ErrBusClosed = errors.New("pcanbasic: bus is closed")
+	ErrBusClosed = errors.New("can: bus is closed")
 	// ErrNotSupported 表示当前平台不支持此操作（如非 Windows 试图打开真实通道）。
-	ErrNotSupported = errors.New("pcanbasic: operation not supported on this platform")
+	ErrNotSupported = errors.New("can: operation not supported on this platform")
 	// ErrDLLNotFound 表示 PCANBasic.dll 加载失败。
-	ErrDLLNotFound = errors.New("pcanbasic: PCANBasic.dll not found or failed to load")
+	ErrDLLNotFound = errors.New("can: PCANBasic.dll not found or failed to load")
 	// ErrFDNotSupportedOnBus 表示在非 FD Bus 上尝试发送 FD 帧。
-	ErrFDNotSupportedOnBus = errors.New("pcanbasic: FD frame requires a bus opened with OpenFD")
+	ErrFDNotSupportedOnBus = errors.New("can: FD frame requires a bus opened with OpenFD")
 )
 
 // 队列状态相关错误。
 var (
 	// ErrQueueEmpty 表示接收队列暂时为空（TryRead 用）。
-	ErrQueueEmpty = errors.New("pcanbasic: receive queue empty")
+	ErrQueueEmpty = errors.New("can: receive queue empty")
 	// ErrQueueOverrun 表示接收队列被覆盖（应用读取过慢）。
-	ErrQueueOverrun = errors.New("pcanbasic: receive queue overrun")
+	ErrQueueOverrun = errors.New("can: receive queue overrun")
 	// ErrQueueXmtFull 表示发送队列已满。
-	ErrQueueXmtFull = errors.New("pcanbasic: transmit queue full")
+	ErrQueueXmtFull = errors.New("can: transmit queue full")
 )
 
 // 总线状态相关错误（位掩码语义，多个可同时为真）。
 var (
-	ErrBusLight   = errors.New("pcanbasic: bus light")
-	ErrBusHeavy   = errors.New("pcanbasic: bus heavy")
-	ErrBusPassive = errors.New("pcanbasic: bus passive")
-	ErrBusOff     = errors.New("pcanbasic: bus off")
+	ErrBusLight   = errors.New("can: bus light")
+	ErrBusHeavy   = errors.New("can: bus heavy")
+	ErrBusPassive = errors.New("can: bus passive")
+	ErrBusOff     = errors.New("can: bus off")
 )
 
 // API / 驱动层错误。
 var (
 	// ErrNotInitialized 对应 PCAN_ERROR_INITIALIZE：通道未被初始化。
-	ErrNotInitialized = errors.New("pcanbasic: channel not initialized")
+	ErrNotInitialized = errors.New("can: channel not initialized")
 	// ErrIllHandle 对应 PCAN_ERROR_ILLHANDLE：非法通道句柄。
-	ErrIllHandle = errors.New("pcanbasic: invalid channel handle")
+	ErrIllHandle = errors.New("can: invalid channel handle")
 	// ErrIllParamType 对应 PCAN_ERROR_ILLPARAMTYPE。
-	ErrIllParamType = errors.New("pcanbasic: invalid parameter type")
+	ErrIllParamType = errors.New("can: invalid parameter type")
 	// ErrIllParamValue 对应 PCAN_ERROR_ILLPARAMVAL。
-	ErrIllParamValue = errors.New("pcanbasic: invalid parameter value")
+	ErrIllParamValue = errors.New("can: invalid parameter value")
 	// ErrIllOperation 对应 PCAN_ERROR_ILLOPERATION：非法操作（如平台不支持）。
-	ErrIllOperation = errors.New("pcanbasic: illegal operation")
+	ErrIllOperation = errors.New("can: illegal operation")
 	// ErrNoDriver 对应 PCAN_ERROR_NODRIVER：驱动未加载。
-	ErrNoDriver = errors.New("pcanbasic: driver not loaded")
+	ErrNoDriver = errors.New("can: driver not loaded")
 	// ErrUnknown 对应 PCAN_ERROR_UNKNOWN。
-	ErrUnknown = errors.New("pcanbasic: unknown error")
+	ErrUnknown = errors.New("can: unknown error")
 )
 
 // Error 是一次 PCAN API 调用产生的错误。
@@ -76,10 +76,10 @@ type Error struct {
 // Error 实现 error。
 func (e *Error) Error() string {
 	if e.Msg != "" {
-		return fmt.Sprintf("pcanbasic: %s failed: 0x%08X: %s",
+		return fmt.Sprintf("can: %s failed: 0x%08X: %s",
 			e.Op, uint32(e.Code), e.Msg)
 	}
-	return fmt.Sprintf("pcanbasic: %s failed: 0x%08X", e.Op, uint32(e.Code))
+	return fmt.Sprintf("can: %s failed: 0x%08X", e.Op, uint32(e.Code))
 }
 
 // Has 判断错误码中是否包含某个具体错误位。
@@ -141,7 +141,7 @@ type SendManyError struct {
 
 // Error 实现 error。
 func (e *SendManyError) Error() string {
-	return fmt.Sprintf("pcanbasic: SendMany failed at frame[%d]: %v", e.Index, e.Err)
+	return fmt.Sprintf("can: SendMany failed at frame[%d]: %v", e.Index, e.Err)
 }
 
 // Unwrap 让 errors.Is/errors.As 可以穿透到内部错误。

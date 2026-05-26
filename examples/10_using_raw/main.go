@@ -13,7 +13,7 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/Crush251/pcanbasic_go/raw"
+	"github.com/Crush251/can_go/raw"
 )
 
 func main() {

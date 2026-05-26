@@ -46,7 +46,7 @@ go run ./examples/02_receive_polling -channel=USBBus2
 ```go
 //go:build pcanhardware
 
-package pcanbasic_test
+package can_test
 ```
 
 本地运行：

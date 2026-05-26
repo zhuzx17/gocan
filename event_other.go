@@ -1,6 +1,6 @@
 //go:build !windows
 
-package pcanbasic
+package can
 
 // 非 Windows 平台没有真正的 PCAN Event 句柄机制，所有 Event API 都是占位。
 // ModeEvent 会在 openWith 中报错；ModeAuto 会降级到 Polling。

@@ -1,10 +1,10 @@
-package pcanbasic
+package can
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/Crush251/pcanbasic_go/raw"
+	"github.com/Crush251/can_go/raw"
 )
 
 func TestError_Has_OKBoundary(t *testing.T) {
