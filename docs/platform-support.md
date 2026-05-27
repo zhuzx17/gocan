@@ -38,6 +38,16 @@ PCAN-USB 驱动同时提供 x86 和 x64 两份 DLL，路径分别是：
 
 **Go 程序的位数必须和 DLL 一致**（`GOARCH=amd64` → x64 DLL）。否则加载时报 `0xC000007B`。
 
+## 通道发现
+
+`LookupChannels()` 返回当前平台可发现的通道列表：
+
+- Windows：扫描内置 PCAN USB/PCI/LAN 通道，使用 `PCAN_CHANNEL_CONDITION` 判断是否可用
+- Linux：枚举网络接口中 `can*` / `vcan*` / `slcan*` / `vxcan*` 名称的 SocketCAN 接口
+- macOS：返回空列表，不报错
+
+返回的 `ChannelInfo` 包含 `Channel`、`Name`、`Backend`、`Up`、`FD` 字段，可直接把 `Channel` 传给 `Open` / `OpenFD`。
+
 ## Linux SocketCAN 行为
 
 Linux 上使用内核 SocketCAN，不需要 `PCANBasic.dll`：
