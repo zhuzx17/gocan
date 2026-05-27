@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/Crush251/can_go"
+	"github.com/Crush251/gocan"
 )
 
 const fdBitrate = "f_clock=80000000, " +
@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("unknown channel: %s", *chName)
 	}
 
-	bus, err := can.OpenFD(ch, fdBitrate)
+	bus, err := gocan.OpenFD(ch, fdBitrate)
 	if err != nil {
 		log.Fatalf("openFD: %v", err)
 	}
@@ -46,23 +46,23 @@ func main() {
 			return
 		}
 		kind := "classical"
-		if fr.Has(can.FlagFD) {
+		if fr.Has(gocan.FlagFD) {
 			kind = "FD"
 		}
 		log.Printf("rx[%s] id=0x%X brs=%v esi=%v len=%d",
 			kind, fr.ID,
-			fr.Has(can.FlagBRS),
-			fr.Has(can.FlagESI),
+			fr.Has(gocan.FlagBRS),
+			fr.Has(gocan.FlagESI),
 			len(fr.Data))
 	}
 }
 
-func lookupChannel(name string) (can.Channel, bool) {
+func lookupChannel(name string) (gocan.Channel, bool) {
 	switch name {
 	case "USBBus1":
-		return can.USBBus1, true
+		return gocan.USBBus1, true
 	case "USBBus2":
-		return can.USBBus2, true
+		return gocan.USBBus2, true
 	}
 	return 0, false
 }

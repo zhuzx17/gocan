@@ -24,8 +24,8 @@ PCAN 驱动安装包自带 `PCANBasic.dll`（通常位于 `C:\Program Files\PEAK
 ## 3. 跑示例
 
 ```bash
-git clone https://github.com/Crush251/can_go
-cd can_go
+git clone https://github.com/Crush251/gocan
+cd gocan
 go run ./examples/01_send_classical -channel=USBBus1
 ```
 
@@ -44,16 +44,16 @@ import (
     "context"
     "log"
 
-    "github.com/Crush251/can_go"
+    "github.com/Crush251/gocan"
 )
 
 func main() {
-    bus, err := can.Open(can.USBBus1,
-        can.WithBitrate(can.Baud1M))
+    bus, err := gocan.Open(gocan.USBBus1,
+        gocan.WithBitrate(gocan.Baud1M))
     if err != nil { log.Fatal(err) }
     defer bus.Close()
 
-    f, _ := can.NewFrame(0x123, []byte{1, 2, 3})
+    f, _ := gocan.NewFrame(0x123, []byte{1, 2, 3})
     if err := bus.Send(context.Background(), f); err != nil {
         log.Fatal(err)
     }

@@ -1,12 +1,12 @@
 //go:build windows
 
-package can
+package gocan
 
 import (
 	"fmt"
 	"unsafe"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 	"golang.org/x/sys/windows"
 )
 

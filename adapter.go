@@ -1,9 +1,9 @@
-package can
+package gocan
 
 import (
 	"unsafe"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 )
 
 // rawAdapter 是 Bus 用到的底层调用接口抽象，便于测试时注入 fake。

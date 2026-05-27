@@ -1,4 +1,4 @@
-package can
+package gocan
 
 // Logger 是本库内部使用的极简日志接口。
 //

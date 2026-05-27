@@ -37,7 +37,7 @@
 总线进入 off 状态，需要主动 `Reset`：
 
 ```go
-if errors.Is(err, can.ErrBusOff) {
+if errors.Is(err, gocan.ErrBusOff) {
     _ = bus.Reset()
     // 真实工程里还要重发握手帧、重设过滤器
 }
@@ -65,7 +65,7 @@ if errors.Is(err, can.ErrBusOff) {
 ```go
 for {
     err := bus.Send(ctx, fr)
-    if errors.Is(err, can.ErrQueueXmtFull) {
+    if errors.Is(err, gocan.ErrQueueXmtFull) {
         time.Sleep(time.Millisecond)
         continue
     }

@@ -1,4 +1,4 @@
-module github.com/Crush251/can_go
+module github.com/Crush251/gocan
 
 go 1.22
 

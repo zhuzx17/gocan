@@ -1,4 +1,4 @@
-# can_go 开发常用命令。
+# gocan 开发常用命令。
 # 安装 just: https://just.systems  (`brew install just` / `cargo install just` / `apt install just`)
 # 列出所有任务: `just --list`
 

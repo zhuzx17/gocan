@@ -1,10 +1,10 @@
-package can
+package gocan
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 )
 
 // 库内部错误（参数校验、状态等）。

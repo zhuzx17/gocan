@@ -1,4 +1,4 @@
-package can
+package gocan
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/Crush251/can_go/raw"
+	"github.com/Crush251/gocan/raw"
 )
 
 // openTest 是测试专用入口，注入 fake adapter 打开 Classical 通道。

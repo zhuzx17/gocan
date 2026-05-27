@@ -15,7 +15,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/Crush251/can_go"
+	"github.com/Crush251/gocan"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("unknown channel: %s", *chName)
 	}
 
-	bus, err := can.Open(ch, can.WithBitrate(can.Baud500K))
+	bus, err := gocan.Open(ch, gocan.WithBitrate(gocan.Baud500K))
 	if err != nil {
 		log.Fatalf("open: %v", err)
 	}
@@ -51,15 +51,15 @@ func main() {
 			}
 			log.Printf("status=0x%X (BUSOFF=%v BUSHEAVY=%v BUSPASSIVE=%v)",
 				uint32(s),
-				can.StatusHas(s, can.StatusBusOff),
-				can.StatusHas(s, can.StatusBusHeavy),
-				can.StatusHas(s, can.StatusBusPassive),
+				gocan.StatusHas(s, gocan.StatusBusOff),
+				gocan.StatusHas(s, gocan.StatusBusHeavy),
+				gocan.StatusHas(s, gocan.StatusBusPassive),
 			)
-			if can.StatusHas(s, can.StatusBusOff) {
+			if gocan.StatusHas(s, gocan.StatusBusOff) {
 				log.Println("BUSOFF detected, calling Reset...")
 				if err := bus.Reset(); err != nil {
 					// 已关闭场景下也会落到这里
-					if errors.Is(err, can.ErrBusClosed) {
+					if errors.Is(err, gocan.ErrBusClosed) {
 						return
 					}
 					log.Printf("reset err: %v", err)
@@ -69,12 +69,12 @@ func main() {
 	}
 }
 
-func lookupChannel(name string) (can.Channel, bool) {
+func lookupChannel(name string) (gocan.Channel, bool) {
 	switch name {
 	case "USBBus1":
-		return can.USBBus1, true
+		return gocan.USBBus1, true
 	case "USBBus2":
-		return can.USBBus2, true
+		return gocan.USBBus2, true
 	}
 	return 0, false
 }
