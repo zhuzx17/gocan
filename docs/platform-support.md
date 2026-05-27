@@ -6,11 +6,11 @@
 |---|---|---|---|---|
 | Windows | amd64 | ✓ | ✓ | ✓ |
 | Windows | 386 | ✓（驱动支持） | ✓ | ✓ |
-| Linux | any | ✗ | ✓ | ✓（fake adapter） |
+| Linux | amd64/arm64 等 | ✓（SocketCAN） | ✓ | ✓（无硬件单测 + fake adapter） |
 | macOS | any | ✗ | ✓ | ✓（fake adapter） |
 
-> "真机"意味着 `Open()` 能成功返回可工作的 `Bus`；非 Windows 上 `Open()` 会返回
-> `ErrIllOperation`（底层 `PCAN_ERROR_ILLOPERATION`），但编译和测试都能跑。
+> "真机"意味着 `Open()` 能成功返回可工作的 `Bus`。Windows 使用 PCANBasic 通道，
+> Linux 使用 SocketCAN 网络接口；macOS 当前仅保留编译桩。
 
 ## DLL 加载策略
 
@@ -38,18 +38,41 @@ PCAN-USB 驱动同时提供 x86 和 x64 两份 DLL，路径分别是：
 
 **Go 程序的位数必须和 DLL 一致**（`GOARCH=amd64` → x64 DLL）。否则加载时报 `0xC000007B`。
 
-## 非 Windows 行为
+## Linux SocketCAN 行为
 
-Linux/macOS 上：
+Linux 上使用内核 SocketCAN，不需要 `PCANBasic.dll`：
+
+- `Open(SocketCAN("can0"))` 打开 Classical CAN raw socket
+- `OpenFD(SocketCAN("vcan0"), "")` 打开 CAN FD raw socket，并启用 `CAN_RAW_FD_FRAMES`
+- `WithBitrate` 在 Linux 后端不生效；bitrate 由 `ip link set can0 type can bitrate ...` 配置
+- `ModeEvent` 不支持；`ModeAuto` 会降级到 `ModePolling`
+- `SetFilter` / `ResetFilter` / PCAN 参数 GetValue/SetValue 在最小 SocketCAN 后端暂不支持
+
+示例：
+
+```bash
+sudo modprobe can
+sudo modprobe can_raw
+sudo modprobe vcan
+sudo ip link add dev vcan0 type vcan
+sudo ip link set vcan0 up
+```
+
+```go
+bus, err := gocan.Open(gocan.SocketCAN("vcan0"))
+```
+
+CI 默认只跑不依赖硬件的单元测试；真实 SocketCAN 通信测试应在具备 `vcan0` 或真机 CAN 接口的 Linux 环境中手动执行：
+
+```bash
+GOCAN_SOCKETCAN_IFACE=vcan0 go test -tags=socketcan_integration ./...
+```
+
+## macOS 行为
+
+macOS 上：
 
 - `raw.EnsureLoaded()` 直接返回 `nil`（无事可做）
 - `raw.Initialize / InitializeFD / Read / Write / ...` 全部返回 `PCAN_ERROR_ILLOPERATION`
 - 顶层 `Open / OpenFD` 因此返回 `*Error{Code: PCAN_ERROR_ILLOPERATION}`，即 `errors.Is(err, ErrIllOperation)` 为 true
-- 单元测试通过 fake adapter 注入：跑 `go test ./...` 在任何平台都能通过
-
-这让 CI 可以在 Linux 上跑（便宜、并行），而真实硬件验证在 Windows runner 上跑。
-
-## SocketCAN？
-
-本库**不**支持 Linux SocketCAN。如果你的目标平台是 Linux，请用 `github.com/brutella/can` 或类似的 SocketCAN Go 库。
-本库只为 Windows + PCAN-USB 这一组合存在，正是为了填补 Linux 已经有 SocketCAN、而 Windows 上长期只有 Python 的空白。
+- 单元测试通过 fake adapter 注入：跑 `go test ./...` 能通过

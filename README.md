@@ -1,6 +1,6 @@
 # gocan
 
-> PEAK-System **PCANBasic.dll** 的 Go 语言封装库（Windows 专用）。
+> Go CAN / CAN FD 多后端库：Windows 走 PEAK-System PCANBasic，Linux 走 SocketCAN。
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/Crush251/gocan.svg)](https://pkg.go.dev/github.com/Crush251/gocan)
 [![CI](https://github.com/Crush251/gocan/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Crush251/gocan/actions/workflows/ci.yml)
@@ -9,8 +9,9 @@
 [![codecov](https://codecov.io/gh/Crush251/gocan/branch/main/graph/badge.svg)](https://codecov.io/gh/Crush251/gocan)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`gocan` 在 Windows 平台用纯 Go（`syscall` 调用，无 CGO）封装 PEAK-System 的
-`PCANBasic.dll`，让 Go 程序能直接收发 CAN / CAN FD 报文，无须再依赖 Python 或 C++ 中间层。
+`gocan` 提供统一的 Go `Bus` API，让程序能在 Windows PCANBasic 和 Linux SocketCAN
+之间复用同一套 CAN / CAN FD 收发逻辑。Windows 后端用纯 Go（`syscall` 调用，无 CGO）
+封装 `PCANBasic.dll`；Linux 后端直接使用内核 SocketCAN。
 
 > ⚠️ **当前为预发布阶段**（`v0.x`），API 仍可能调整。本仓库目前处于**初始化阶段**，
 > 完整设计见
@@ -20,13 +21,13 @@
 
 ## 为什么做这个
 
-- **Linux** 端可以用 [`socketcan`](https://github.com/brutella/can) 等成熟 Go 库直连 CAN
 - **Windows** 端 PEAK 官方仅提供 C/C++、C#、Java、Python 等绑定，**没有 Go 封装**
+- **Linux** 端事实标准是内核 SocketCAN，接口通常是 `can0` / `vcan0`
 - 现有的 Python 桥接（`can-bridge-win`）需要打包 `PyInstaller`、引入 `python-can` 依赖，
   在嵌入到机器人控制等纯 Go 项目时既笨重又难以追踪问题
 
-`gocan` 旨在补上这块空缺，作为未来跨平台 CAN 抽象层（Linux 走 socketcan、
-Windows 走 PCANBasic）的 Windows 后端。
+`gocan` 的目标是提供稳定的跨平台 CAN 抽象层：Windows 走 PCANBasic，Linux 走 SocketCAN，
+上层业务尽量只依赖统一的 `Bus` / `Frame` API。
 
 ---
 
@@ -37,14 +38,14 @@ Windows 走 PCANBasic）的 Windows 后端。
 - ✅ 三种接收模式：`ModeAuto` / `ModePolling` / `ModeEvent`（Windows Event 驱动）
 - ✅ 子包 `raw`：与 PCANBasic C API 1:1 对应的低层绑定
 - ✅ 错误处理：位掩码语义 + `errors.Is` 哨兵
-- ✅ 非 Windows 平台编译桩，便于 Linux/macOS 上做 lint / vet / 单元测试
+- ✅ Linux SocketCAN 最小后端：`Open(SocketCAN("can0"))` / `OpenFD(SocketCAN("vcan0"), "")`
 - ✅ 完整的中文文档与 10 个示例
 
 详细范围见 [设计文档](docs/superpowers/specs/2026-05-22-gocan-design.md)。
 
 ---
 
-## 快速开始（计划交付时）
+## 快速开始
 
 ```go
 package main
@@ -75,12 +76,34 @@ func main() {
 
 ---
 
+## Linux SocketCAN
+
+```go
+bus, err := gocan.Open(gocan.SocketCAN("can0"))
+if err != nil {
+    log.Fatal(err)
+}
+defer bus.Close()
+```
+
+CAN FD：
+
+```go
+bus, err := gocan.OpenFD(gocan.SocketCAN("vcan0"), "")
+```
+
+Linux 上 bitrate 由系统配置，不由 `WithBitrate` 设置，例如：
+
+```bash
+sudo ip link set can0 type can bitrate 500000
+sudo ip link set can0 up
+```
+
 ## 系统要求
 
-- Windows（v0.1 真机仅支持 Windows；非 Windows 平台仅可编译，无法实际通信）
-- Go 1.22+
-- 已安装 PEAK PCAN 驱动（[官方下载](https://www.peak-system.com/Drivers.523.0.html)）
-- `PCANBasic.dll` 与 Go 程序架构匹配（amd64 → 64 位 DLL；386 → 32 位 DLL）
+- Windows：Go 1.22+、已安装 PEAK PCAN 驱动、`PCANBasic.dll` 与 Go 程序架构匹配
+- Linux：Go 1.22+、内核启用 SocketCAN、已创建并启用 `can0` / `vcan0` 等网络接口
+- macOS：当前仅支持编译和纯逻辑测试，不支持真机通信
 
 ---
 
@@ -89,7 +112,7 @@ func main() {
 | 版本 | 主要内容 |
 |---|---|
 | v0.1.0 | Classical + FD 收发、Bus 完整高层、raw 子包基础 API、文档与示例（Windows 后端） |
-| v0.2.0 | LookUpChannel、设备信息查询、Trace；**Linux 后端走 socketcan**（参考 [python-can](https://python-can.readthedocs.io/) 的多后端抽象），同一套 `Bus` API、按平台编译期切换后端 |
+| v0.2.0 | 最小 Linux SocketCAN 后端：`can0` / `vcan0` 的 Open、Send、Receive、Close；LookUpChannel、设备信息查询、Trace 后置 |
 | v1.0.0 | API 冻结，进入严格兼容承诺 |
 
 ---
