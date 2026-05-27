@@ -26,8 +26,9 @@ var linuxChannels = struct {
 }{m: make(map[TPCANHandle]*linuxChannel)}
 
 type linuxChannel struct {
-	fd   int
-	isFD bool
+	fd      int
+	isFD    bool
+	filters []unix.CanFilter
 }
 
 // EnsureLoaded 在 Linux SocketCAN 后端无需加载动态库。
@@ -236,13 +237,35 @@ func writeAll(fd int, buf []byte) TPCANStatus {
 	return PCAN_ERROR_OK
 }
 
-// FilterMessages 当前 Linux SocketCAN 最小后端暂不支持内核过滤器配置。
+// FilterMessages 为 Linux SocketCAN raw socket 追加一组内核过滤器。
 func FilterMessages(ch TPCANHandle, fromID, toID uint32, mode TPCANMessageType) TPCANStatus {
-	_, status := getLinuxChannel(ch)
+	newFilters, status := socketCANFilters(fromID, toID, mode)
 	if status != PCAN_ERROR_OK {
 		return status
 	}
-	return PCAN_ERROR_ILLOPERATION
+
+	linuxChannels.mu.Lock()
+	c, ok := linuxChannels.m[ch]
+	if !ok {
+		linuxChannels.mu.Unlock()
+		return PCAN_ERROR_INITIALIZE
+	}
+	filters := append(append([]unix.CanFilter(nil), c.filters...), newFilters...)
+	linuxChannels.mu.Unlock()
+
+	if len(filters) > unix.CAN_RAW_FILTER_MAX {
+		return PCAN_ERROR_RESOURCE
+	}
+	if err := unix.SetsockoptCanRawFilter(c.fd, unix.SOL_CAN_RAW, unix.CAN_RAW_FILTER, filters); err != nil {
+		return errnoToStatus(err)
+	}
+
+	linuxChannels.mu.Lock()
+	if current, ok := linuxChannels.m[ch]; ok && current == c {
+		current.filters = filters
+	}
+	linuxChannels.mu.Unlock()
+	return PCAN_ERROR_OK
 }
 
 // GetValue 当前 Linux SocketCAN 最小后端暂不支持 PCAN 参数查询。
@@ -254,13 +277,41 @@ func GetValue(ch TPCANHandle, p TPCANParameter, buf unsafe.Pointer, n uint32) TP
 	return PCAN_ERROR_ILLOPERATION
 }
 
-// SetValue 当前 Linux SocketCAN 最小后端暂不支持 PCAN 参数设置。
+// SetValue 支持 Linux SocketCAN 后端需要的最小 PCAN 参数集合。
 func SetValue(ch TPCANHandle, p TPCANParameter, buf unsafe.Pointer, n uint32) TPCANStatus {
-	_, status := getLinuxChannel(ch)
-	if status != PCAN_ERROR_OK {
-		return status
+	if p != PCAN_MESSAGE_FILTER {
+		_, status := getLinuxChannel(ch)
+		if status != PCAN_ERROR_OK {
+			return status
+		}
+		return PCAN_ERROR_ILLOPERATION
 	}
-	return PCAN_ERROR_ILLOPERATION
+	if buf == nil || n < uint32(unsafe.Sizeof(uint32(0))) {
+		return PCAN_ERROR_ILLPARAMVAL
+	}
+	value := *(*uint32)(buf)
+	if TPCANParameter(value) != PCAN_FILTER_OPEN {
+		return PCAN_ERROR_ILLOPERATION
+	}
+
+	linuxChannels.mu.Lock()
+	c, ok := linuxChannels.m[ch]
+	if !ok {
+		linuxChannels.mu.Unlock()
+		return PCAN_ERROR_INITIALIZE
+	}
+	linuxChannels.mu.Unlock()
+
+	if err := unix.SetsockoptCanRawFilter(c.fd, unix.SOL_CAN_RAW, unix.CAN_RAW_FILTER, nil); err != nil {
+		return errnoToStatus(err)
+	}
+
+	linuxChannels.mu.Lock()
+	if current, ok := linuxChannels.m[ch]; ok && current == c {
+		current.filters = nil
+	}
+	linuxChannels.mu.Unlock()
+	return PCAN_ERROR_OK
 }
 
 // GetErrorText 返回 Linux SocketCAN 后端的错误描述。
@@ -284,9 +335,58 @@ func GetErrorText(code TPCANStatus, lang uint16) (string, TPCANStatus) {
 		return "operation is not supported by the SocketCAN backend", PCAN_ERROR_OK
 	case PCAN_ERROR_ILLDATA:
 		return "invalid CAN frame data", PCAN_ERROR_OK
+	case PCAN_ERROR_RESOURCE:
+		return "SocketCAN filter limit exceeded", PCAN_ERROR_OK
 	default:
 		return "unknown SocketCAN error", PCAN_ERROR_OK
 	}
+}
+
+func socketCANFilters(fromID, toID uint32, mode TPCANMessageType) ([]unix.CanFilter, TPCANStatus) {
+	if fromID > toID {
+		return nil, PCAN_ERROR_ILLPARAMVAL
+	}
+	idFlag := uint32(0)
+	idMask := uint32(unix.CAN_SFF_MASK)
+	limit := uint32(unix.CAN_SFF_MASK)
+	if mode&PCAN_MESSAGE_EXTENDED != 0 {
+		idFlag = unix.CAN_EFF_FLAG
+		idMask = unix.CAN_EFF_MASK
+		limit = unix.CAN_EFF_MASK
+	}
+	if fromID > limit || toID > limit {
+		return nil, PCAN_ERROR_ILLPARAMVAL
+	}
+
+	filters := make([]unix.CanFilter, 0)
+	for start := fromID; start <= toID; {
+		block := largestAlignedFilterBlock(start, toID)
+		filters = append(filters, unix.CanFilter{
+			Id:   idFlag | start,
+			Mask: unix.CAN_EFF_FLAG | unix.CAN_RTR_FLAG | idMask&^uint32(block-1),
+		})
+		if block > toID-start {
+			break
+		}
+		start += block
+	}
+	return filters, PCAN_ERROR_OK
+}
+
+func largestAlignedFilterBlock(start, end uint32) uint32 {
+	remaining := end - start + 1
+	block := uint32(1)
+	for block <= remaining/2 {
+		next := block << 1
+		if start&(next-1) != 0 {
+			break
+		}
+		block = next
+	}
+	for block > remaining {
+		block >>= 1
+	}
+	return block
 }
 
 func fillTimestamp(t *TPCANTimestamp) {

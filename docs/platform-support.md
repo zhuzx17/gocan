@@ -46,7 +46,8 @@ Linux 上使用内核 SocketCAN，不需要 `PCANBasic.dll`：
 - `OpenFD(SocketCAN("vcan0"), "")` 打开 CAN FD raw socket，并启用 `CAN_RAW_FD_FRAMES`
 - `WithBitrate` 在 Linux 后端不生效；bitrate 由 `ip link set can0 type can bitrate ...` 配置
 - `ModeEvent` 不支持；`ModeAuto` 会降级到 `ModePolling`
-- `SetFilter` / `ResetFilter` / PCAN 参数 GetValue/SetValue 在最小 SocketCAN 后端暂不支持
+- `SetFilter` / `ResetFilter` 使用 SocketCAN `CAN_RAW_FILTER` 实现，支持标准帧和扩展帧 ID 范围过滤
+- 其他 PCAN 参数 GetValue/SetValue 在 SocketCAN 后端暂不支持
 
 示例：
 

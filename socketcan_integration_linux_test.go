@@ -25,6 +25,12 @@ func TestSocketCANIntegration_OpenSendClose(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewFrame failed: %v", err)
 	}
+	if err := bus.SetFilter(0x100, 0x1FF, FilterStandard); err != nil {
+		t.Fatalf("SetFilter failed: %v", err)
+	}
+	if err := bus.ResetFilter(); err != nil {
+		t.Fatalf("ResetFilter failed: %v", err)
+	}
 	if err := bus.Send(context.Background(), frame); err != nil {
 		t.Fatalf("Send failed: %v", err)
 	}
