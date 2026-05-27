@@ -38,7 +38,7 @@
 - ✅ 三种接收模式：`ModeAuto` / `ModePolling` / `ModeEvent`（Windows Event 驱动）
 - ✅ 子包 `raw`：与 PCANBasic C API 1:1 对应的低层绑定
 - ✅ 错误处理：位掩码语义 + `errors.Is` 哨兵
-- ✅ Linux SocketCAN 最小后端：`Open(SocketCAN("can0"))` / `OpenFD(SocketCAN("vcan0"), "")`
+- ✅ Linux SocketCAN 后端：`Open(SocketCAN("can0"))` / `OpenFD(SocketCAN("vcan0"), "")` / `SetFilter`
 - ✅ 完整的中文文档与 10 个示例
 
 详细范围见 [设计文档](docs/superpowers/specs/2026-05-22-gocan-design.md)。

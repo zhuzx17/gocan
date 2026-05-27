@@ -95,6 +95,94 @@ func TestLinuxCANFDFrameRejectsInvalidDLC(t *testing.T) {
 	}
 }
 
+func TestSocketCANFilters_StandardExactID(t *testing.T) {
+	filters, status := socketCANFilters(0x123, 0x123, PCAN_MESSAGE_STANDARD)
+	if status != PCAN_ERROR_OK {
+		t.Fatalf("status = 0x%X, want OK", uint32(status))
+	}
+	if len(filters) != 1 {
+		t.Fatalf("len(filters) = %d, want 1", len(filters))
+	}
+	if filters[0].Id != 0x123 {
+		t.Fatalf("filter id = 0x%X, want 0x123", filters[0].Id)
+	}
+	wantMask := uint32(0xC00007FF)
+	if filters[0].Mask != wantMask {
+		t.Fatalf("filter mask = 0x%X, want 0x%X", filters[0].Mask, wantMask)
+	}
+}
+
+func TestSocketCANFilters_StandardRange(t *testing.T) {
+	filters, status := socketCANFilters(0x100, 0x1FF, PCAN_MESSAGE_STANDARD)
+	if status != PCAN_ERROR_OK {
+		t.Fatalf("status = 0x%X, want OK", uint32(status))
+	}
+	if len(filters) != 1 {
+		t.Fatalf("len(filters) = %d, want 1", len(filters))
+	}
+	if filters[0].Id != 0x100 {
+		t.Fatalf("filter id = 0x%X, want 0x100", filters[0].Id)
+	}
+	wantMask := uint32(0xC0000700)
+	if filters[0].Mask != wantMask {
+		t.Fatalf("filter mask = 0x%X, want 0x%X", filters[0].Mask, wantMask)
+	}
+}
+
+func TestSocketCANFilters_ExtendedRange(t *testing.T) {
+	filters, status := socketCANFilters(0x1ABCDE0, 0x1ABCDEF, PCAN_MESSAGE_EXTENDED)
+	if status != PCAN_ERROR_OK {
+		t.Fatalf("status = 0x%X, want OK", uint32(status))
+	}
+	if len(filters) != 1 {
+		t.Fatalf("len(filters) = %d, want 1", len(filters))
+	}
+	if filters[0].Id != 0x81ABCDE0 {
+		t.Fatalf("filter id = 0x%X, want 0x81ABCDE0", filters[0].Id)
+	}
+	wantMask := uint32(0xDFFFFFF0)
+	if filters[0].Mask != wantMask {
+		t.Fatalf("filter mask = 0x%X, want 0x%X", filters[0].Mask, wantMask)
+	}
+}
+
+func TestSocketCANFilters_SplitsUnalignedRange(t *testing.T) {
+	filters, status := socketCANFilters(0x101, 0x103, PCAN_MESSAGE_STANDARD)
+	if status != PCAN_ERROR_OK {
+		t.Fatalf("status = 0x%X, want OK", uint32(status))
+	}
+	if len(filters) != 2 {
+		t.Fatalf("len(filters) = %d, want 2", len(filters))
+	}
+	if filters[0].Id != 0x101 || filters[0].Mask != 0xC00007FF {
+		t.Fatalf("filter[0] = {Id:0x%X Mask:0x%X}, want {Id:0x101 Mask:0xC00007FF}", filters[0].Id, filters[0].Mask)
+	}
+	if filters[1].Id != 0x102 || filters[1].Mask != 0xC00007FE {
+		t.Fatalf("filter[1] = {Id:0x%X Mask:0x%X}, want {Id:0x102 Mask:0xC00007FE}", filters[1].Id, filters[1].Mask)
+	}
+}
+
+func TestSocketCANFilters_RejectsInvalidRanges(t *testing.T) {
+	tests := []struct {
+		name   string
+		fromID uint32
+		toID   uint32
+		mode   TPCANMessageType
+	}{
+		{"reversed", 0x200, 0x100, PCAN_MESSAGE_STANDARD},
+		{"standard out of range", 0x800, 0x800, PCAN_MESSAGE_STANDARD},
+		{"extended out of range", 0x20000000, 0x20000000, PCAN_MESSAGE_EXTENDED},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, status := socketCANFilters(tt.fromID, tt.toID, tt.mode)
+			if status != PCAN_ERROR_ILLPARAMVAL {
+				t.Fatalf("status = 0x%X, want ILLPARAMVAL", uint32(status))
+			}
+		})
+	}
+}
+
 func TestLinuxInitializeRejectsPlainPCANHandle(t *testing.T) {
 	status := Initialize(PCAN_USBBUS1, PCAN_BAUD_1M)
 	if status != PCAN_ERROR_ILLOPERATION {
