@@ -1,6 +1,9 @@
 package gocan
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestChannelBackends(t *testing.T) {
 	if BackendPCAN != "pcan" {
@@ -13,6 +16,9 @@ func TestChannelBackends(t *testing.T) {
 
 func TestLookupChannels_DoesNotPanic(t *testing.T) {
 	channels, err := LookupChannels()
+	if errors.Is(err, ErrDLLNotFound) {
+		return
+	}
 	if err != nil {
 		t.Fatalf("LookupChannels failed: %v", err)
 	}
