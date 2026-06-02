@@ -48,6 +48,12 @@ PCAN-USB 驱动同时提供 x86 和 x64 两份 DLL，路径分别是：
 
 返回的 `ChannelInfo` 包含 `Channel`、`Name`、`Backend`、`Up`、`FD` 字段，可直接把 `Channel` 传给 `Open` / `OpenFD`。
 
+`GetDeviceInfo(ch)` 返回指定通道的更详细信息：
+
+- Windows：查询硬件名称、设备号、控制器号、通道特性等 PCAN 参数；缺少 DLL 时返回 `ErrDLLNotFound`
+- Linux：返回 SocketCAN 网络接口名称、up 状态和 FD 能力标记
+- macOS：返回 `ErrNotSupported`
+
 ## Linux SocketCAN 行为
 
 Linux 上使用内核 SocketCAN，不需要 `PCANBasic.dll`：
