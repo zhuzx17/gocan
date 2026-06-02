@@ -16,6 +16,14 @@ var socketCANRegistry = struct {
 }
 
 // SocketCANHandle 返回 Linux SocketCAN 网络接口对应的通道句柄。
+func SocketCANInterface(ch TPCANHandle) (string, bool) {
+	socketCANRegistry.mu.Lock()
+	defer socketCANRegistry.mu.Unlock()
+
+	iface, ok := socketCANRegistry.names[ch]
+	return iface, ok
+}
+
 func SocketCANHandle(iface string) TPCANHandle {
 	if iface == "" {
 		return PCAN_NONEBUS
