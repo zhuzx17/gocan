@@ -167,3 +167,29 @@ func (g *BusGroup) fanIn(name string, bus *Bus) {
 		}
 	}
 }
+
+// Close 并发关闭所有 Bus，聚合错误。幂等。
+// 关闭顺序：closing → 等所有 fan-in 退出 → Close 每个 Bus → close(out)。
+// 返回非 nil 时一定是 *GroupCloseError。
+func (g *BusGroup) Close() error {
+	var causes map[string]error
+	g.closeOnce.Do(func() {
+		g.closed.Store(true)
+		close(g.closing)
+		g.fanWg.Wait()
+
+		g.mu.Lock()
+		defer g.mu.Unlock()
+		causes = make(map[string]error)
+		for name, bus := range g.buses {
+			if err := bus.Close(); err != nil {
+				causes[name] = err
+			}
+		}
+		close(g.out)
+	})
+	if len(causes) == 0 {
+		return nil
+	}
+	return &GroupCloseError{Causes: causes}
+}

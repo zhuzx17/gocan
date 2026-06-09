@@ -147,3 +147,57 @@ func TestBusGroup_ReceiveFanIn(t *testing.T) {
 		}
 	}
 }
+
+func TestBusGroup_CloseAggregates(t *testing.T) {
+	fake := withFakeOpener(t)
+	g := NewBusGroup(0)
+	if _, err := g.Add("a", raw.PCAN_USBBUS1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := g.Add("b", raw.PCAN_USBBUS2); err != nil {
+		t.Fatal(err)
+	}
+	fake.uninitializeReturn = raw.PCAN_ERROR_ILLPARAMVAL
+	err := g.Close()
+	if err == nil {
+		t.Fatal("Close returned nil, want aggregate error")
+	}
+	gce, ok := err.(*GroupCloseError)
+	if !ok {
+		t.Fatalf("Close returned %T, want *GroupCloseError", err)
+	}
+	if len(gce.Causes) != 2 {
+		t.Errorf("Causes has %d entries, want 2", len(gce.Causes))
+	}
+}
+
+func TestBusGroup_CloseIdempotent(t *testing.T) {
+	withFakeOpener(t)
+	g := NewBusGroup(0)
+	if _, err := g.Add("a", raw.PCAN_USBBUS1); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.Close(); err != nil {
+		t.Errorf("first Close: %v", err)
+	}
+	if err := g.Close(); err != nil {
+		t.Errorf("second Close: %v", err)
+	}
+	if _, err := g.Add("late", raw.PCAN_USBBUS2); !errors.Is(err, ErrBusClosed) {
+		t.Errorf("Add after Close err = %v, want ErrBusClosed", err)
+	}
+}
+
+func TestBusGroup_ReceiveClosesAfterClose(t *testing.T) {
+	withFakeOpener(t)
+	g := NewBusGroup(0)
+	if _, err := g.Add("a", raw.PCAN_USBBUS1); err != nil {
+		t.Fatal(err)
+	}
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		_ = g.Close()
+	}()
+	for range g.Receive() {
+	}
+}
