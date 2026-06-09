@@ -27,7 +27,7 @@
 3. 调用方不传任何新 Option 时，行为和今天**字节级一致**
 4. `examples/06_multi_channel/` 不动，作为"不用 BusGroup 也能用"的对照保留
 5. `raw` 子包公开 API **不变**，本轮只在 raw 内**新增** `socketcan_options_linux.go` 文件
-6. 跨平台编译：`*Bus` 上的 SocketCAN 运行期方法在非 Linux 平台返回 `ErrUnsupported`，不报编译错；Linux Option 函数仅在 Linux 构建可见，其他平台调用 → 编译期错误（防止 silently no-op）
+6. 跨平台编译：`*Bus` 上的 SocketCAN 运行期方法在非 Linux 平台返回 `ErrNotSupported`（复用 `errors.go` 已有的哨兵错误），不报编译错；Linux Option 函数仅在 Linux 构建可见，其他平台调用 → 编译期错误（防止 silently no-op）
 7. 不引入新依赖，仅用标准库和已有的 `golang.org/x/sys/unix`
 
 ## 3. 文件布局
@@ -127,7 +127,8 @@ func (g *BusGroup) Close() error
 ```go
 var ErrInvalidName    = errors.New("gocan: invalid bus name")
 var ErrDuplicateName  = errors.New("gocan: duplicate bus name in group")
-var ErrUnsupported    = errors.New("gocan: not supported on this platform")
+// 复用 errors.go 已有的 ErrNotSupported（"can: operation not supported on this platform"）
+// 用于 *Bus 上的 SocketCAN 运行期方法在非 Linux 平台的占位返回。
 
 // GroupCloseError 聚合 BusGroup.Close 时多个 Bus 的失败。
 type GroupCloseError struct {
@@ -224,7 +225,7 @@ func (b *Bus) SetJoinFilters(and bool) error
 
 只暴露这两个的理由：其他参数（buffer 大小、超时、loopback、时间戳模式）运行期改会触发 reader goroutine 协调，超出本轮范围。
 
-跨平台编译屏障 `bus_socketcan_other.go`（`//go:build !linux`）提供同名方法返回 `ErrUnsupported`，让跨平台代码能编译过。
+跨平台编译屏障 `bus_socketcan_other.go`（`//go:build !linux`）提供同名方法返回 `ErrNotSupported`，让跨平台代码能编译过。
 
 ## 7. 4 个示例
 
