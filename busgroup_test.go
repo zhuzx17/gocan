@@ -3,6 +3,7 @@ package gocan
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Crush251/gocan/raw"
 )
@@ -111,5 +112,38 @@ func TestBusGroup_EachOrder(t *testing.T) {
 	g.Each(func(name string, _ *Bus) { seen = append(seen, name) })
 	if len(seen) != 3 || seen[0] != "a" || seen[1] != "b" || seen[2] != "c" {
 		t.Errorf("Each order = %v, want [a b c]", seen)
+	}
+}
+
+func TestBusGroup_ReceiveFanIn(t *testing.T) {
+	fake := withFakeOpener(t)
+	g := NewBusGroup(8)
+
+	if _, err := g.Add("a", raw.PCAN_USBBUS1); err != nil {
+		t.Fatalf("Add a: %v", err)
+	}
+	if _, err := g.Add("b", raw.PCAN_USBBUS2); err != nil {
+		t.Fatalf("Add b: %v", err)
+	}
+
+	fake.push(raw.TPCANMsg{ID: 0x111, Len: 1, Data: [8]byte{0xAA}})
+	fake.push(raw.TPCANMsg{ID: 0x222, Len: 1, Data: [8]byte{0xBB}})
+
+	got := map[string]uint32{}
+	for i := 0; i < 2; i++ {
+		select {
+		case sf := <-g.Receive():
+			got[sf.Source] = sf.Frame.ID
+		case <-time.After(2 * time.Second):
+			t.Fatalf("timeout waiting for frame %d", i)
+		}
+	}
+	if len(got) == 0 {
+		t.Fatal("no frames received")
+	}
+	for src, id := range got {
+		if id != 0x111 && id != 0x222 {
+			t.Errorf("source %s id=0x%X unexpected", src, id)
+		}
 	}
 }

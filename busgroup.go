@@ -100,6 +100,8 @@ func (g *BusGroup) add(name string, fd bool, fdBitrate string, ch Channel, opts 
 		return nil, ErrDuplicateName
 	}
 	g.buses[name] = bus
+	g.fanWg.Add(1)
+	go g.fanIn(name, bus)
 	g.mu.Unlock()
 	return bus, nil
 }
@@ -136,5 +138,32 @@ func (g *BusGroup) Each(fn func(name string, bus *Bus)) {
 	sort.Strings(names)
 	for _, n := range names {
 		fn(n, g.buses[n])
+	}
+}
+
+// Receive 返回合并接收 channel；group 关闭时该 channel 也关闭。
+// 反压策略：写入 out 阻塞 → 反压回对应 Bus 的 fan-in goroutine
+// （不丢帧；需要更高吞吐时调大 NewBusGroup 的 outBufferSize）。
+func (g *BusGroup) Receive() <-chan SourcedFrame { return g.out }
+
+// fanIn 把单个 Bus 的接收帧打上来源标签转发到 g.out。
+// closing 关闭或 Bus rxCh 关闭时退出。
+func (g *BusGroup) fanIn(name string, bus *Bus) {
+	defer g.fanWg.Done()
+	rx := bus.Receive()
+	for {
+		select {
+		case <-g.closing:
+			return
+		case f, ok := <-rx:
+			if !ok {
+				return
+			}
+			select {
+			case <-g.closing:
+				return
+			case g.out <- SourcedFrame{Source: name, Frame: f}:
+			}
+		}
 	}
 }
