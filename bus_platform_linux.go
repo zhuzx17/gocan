@@ -15,6 +15,7 @@ type linuxConfig struct {
 	recvOwnMsgs *bool
 	errFilter   *uint32
 	joinFilters *bool
+	rxTimestamp RxTimestamp
 }
 
 // applyPlatformOptions 在 Initialize 成功后、startReader 之前调用，
@@ -47,6 +48,11 @@ func applyPlatformOptions(b *Bus, cfg *config) error {
 	if lc.joinFilters != nil {
 		if s := raw.SetCANRawJoinFilters(b.ch, *lc.joinFilters); s != raw.PCAN_ERROR_OK {
 			return wrapStatus(b.adapt, "setsockopt(CAN_RAW_JOIN_FILTERS)", s)
+		}
+	}
+	if lc.rxTimestamp != RxTimestampNone {
+		if s := raw.EnableRxTimestamp(b.ch, uint8(lc.rxTimestamp)); s != raw.PCAN_ERROR_OK {
+			return wrapStatus(b.adapt, "setsockopt(SO_TIMESTAMP*)", s)
 		}
 	}
 	return nil

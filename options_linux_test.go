@@ -39,3 +39,11 @@ func TestWithJoinFilters_SetsField(t *testing.T) {
 		t.Errorf("joinFilters = %v, want true", cfg.linux.joinFilters)
 	}
 }
+
+func TestWithRecvTimestamp_SetsField(t *testing.T) {
+	cfg := newDefaultConfig()
+	WithRecvTimestamp(RxTimestampNano)(cfg)
+	if cfg.linux.rxTimestamp != RxTimestampNano {
+		t.Errorf("rxTimestamp = %v, want %v", cfg.linux.rxTimestamp, RxTimestampNano)
+	}
+}

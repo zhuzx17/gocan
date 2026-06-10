@@ -55,3 +55,22 @@ func WithJoinFilters(and bool) Option {
 		c.linux.joinFilters = &v
 	}
 }
+
+// RxTimestamp 选择内核给入帧打时间戳的机制。
+// 默认 RxTimestampNone 不启用；启用时 Frame.TimestampMicros 由内核提供。
+type RxTimestamp uint8
+
+const (
+	RxTimestampNone     RxTimestamp = 0
+	RxTimestampSecond   RxTimestamp = 1 // SO_TIMESTAMP（μs 精度）
+	RxTimestampNano     RxTimestamp = 2 // SO_TIMESTAMPNS（ns 精度）
+	RxTimestampHardware RxTimestamp = 3 // SO_TIMESTAMPING + RX_HARDWARE，不支持时降级到 NS
+)
+
+// WithRecvTimestamp 启用内核接收时间戳，结果写入 Frame.TimestampMicros。
+// 不传该 Option 时保持现有行为：SocketCAN 后端用 time.Now() 合成时间戳。
+func WithRecvTimestamp(mode RxTimestamp) Option {
+	return func(c *config) {
+		c.linux.rxTimestamp = mode
+	}
+}
