@@ -26,9 +26,14 @@ var linuxChannels = struct {
 }{m: make(map[TPCANHandle]*linuxChannel)}
 
 type linuxChannel struct {
-	fd      int
-	isFD    bool
-	filters []unix.CanFilter
+	fd              int
+	isFD            bool
+	filters         []unix.CanFilter
+	errFilter       uint32
+	errFilterSet    bool
+	joinFilters     bool
+	joinFiltersSet  bool
+	rxTimestampMode uint8 // 0=off, 1=SO_TIMESTAMP, 2=SO_TIMESTAMPNS, 3=SO_TIMESTAMPING
 }
 
 // EnsureLoaded 在 Linux SocketCAN 后端无需加载动态库。
