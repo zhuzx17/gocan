@@ -9,7 +9,9 @@ import (
 )
 
 // SetCANRawSockoptInt 把一个 int 值写到 SOL_CAN_RAW 层的指定选项。
-// 用于 CAN_RAW_LOOPBACK / CAN_RAW_RECV_OWN_MSGS / CAN_RAW_FD_FRAMES 等 0/1 开关。
+// 仅用于 0/1 开关：CAN_RAW_LOOPBACK / CAN_RAW_RECV_OWN_MSGS / CAN_RAW_FD_FRAMES。
+// 调用方负责传入合法 opt：错用 CAN_RAW_FILTER / ERR_FILTER / JOIN_FILTERS 会绕过
+// linuxChannel 的状态簿记，导致后续状态查询与内核真实状态不一致。
 func SetCANRawSockoptInt(ch TPCANHandle, opt int, value int) TPCANStatus {
 	c, status := getLinuxChannel(ch)
 	if status != PCAN_ERROR_OK {
@@ -30,8 +32,10 @@ func SetCANRawErrFilter(ch TPCANHandle, mask uint32) TPCANStatus {
 	if err := unix.SetsockoptInt(c.fd, unix.SOL_CAN_RAW, unix.CAN_RAW_ERR_FILTER, int(mask)); err != nil {
 		return errnoToStatus(err)
 	}
-	c.errFilter = mask
-	c.errFilterSet = true
+	updateLinuxChannel(ch, c, func(c *linuxChannel) {
+		c.errFilter = mask
+		c.errFilterSet = true
+	})
 	return PCAN_ERROR_OK
 }
 
@@ -49,8 +53,10 @@ func SetCANRawJoinFilters(ch TPCANHandle, and bool) TPCANStatus {
 	if err := unix.SetsockoptInt(c.fd, unix.SOL_CAN_RAW, unix.CAN_RAW_JOIN_FILTERS, v); err != nil {
 		return errnoToStatus(err)
 	}
-	c.joinFilters = and
-	c.joinFiltersSet = true
+	updateLinuxChannel(ch, c, func(c *linuxChannel) {
+		c.joinFilters = and
+		c.joinFiltersSet = true
+	})
 	return PCAN_ERROR_OK
 }
 
@@ -96,7 +102,8 @@ func SetReadWriteTimeout(ch TPCANHandle, read, write time.Duration) TPCANStatus 
 
 // EnableRxTimestamp 启用内核时间戳（mode 1=SO_TIMESTAMP, 2=SO_TIMESTAMPNS, 3=SO_TIMESTAMPING(HW)）。
 // linuxChannel 持久化 mode，read 路径据此决定走 read 还是 recvmsg。
-// HW 不被支持时降级到 NS（mode=2）。
+// 当 mode=3 但内核或硬件不支持时，按 spec 静默降级到 NS（mode=2），
+// 持久化的 rxTimestampMode 会反映实际生效的模式，调用方可读取以判断是否降级。
 func EnableRxTimestamp(ch TPCANHandle, mode uint8) TPCANStatus {
 	c, status := getLinuxChannel(ch)
 	if status != PCAN_ERROR_OK {
@@ -118,12 +125,16 @@ func EnableRxTimestamp(ch TPCANHandle, mode uint8) TPCANStatus {
 			if e := unix.SetsockoptInt(c.fd, unix.SOL_SOCKET, unix.SO_TIMESTAMPNS, 1); e != nil {
 				return errnoToStatus(e)
 			}
-			c.rxTimestampMode = 2
+			updateLinuxChannel(ch, c, func(c *linuxChannel) {
+				c.rxTimestampMode = 2
+			})
 			return PCAN_ERROR_OK
 		}
 	default:
 		return PCAN_ERROR_ILLPARAMVAL
 	}
-	c.rxTimestampMode = mode
+	updateLinuxChannel(ch, c, func(c *linuxChannel) {
+		c.rxTimestampMode = mode
+	})
 	return PCAN_ERROR_OK
 }

@@ -130,6 +130,16 @@ func getLinuxChannel(ch TPCANHandle) (*linuxChannel, TPCANStatus) {
 	return c, PCAN_ERROR_OK
 }
 
+// updateLinuxChannel 在 setsockopt 成功后安全地把状态写回 linuxChannel。
+// 若期间通道被 Uninitialize/Initialize 替换，写入会被跳过（current != c）。
+func updateLinuxChannel(ch TPCANHandle, c *linuxChannel, mut func(*linuxChannel)) {
+	linuxChannels.mu.Lock()
+	if current, ok := linuxChannels.m[ch]; ok && current == c {
+		mut(current)
+	}
+	linuxChannels.mu.Unlock()
+}
+
 // Reset 在 SocketCAN 后端无内部队列可重置，保留为成功的空操作。
 func Reset(ch TPCANHandle) TPCANStatus {
 	_, status := getLinuxChannel(ch)

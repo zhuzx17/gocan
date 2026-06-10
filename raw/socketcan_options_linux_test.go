@@ -30,4 +30,17 @@ func TestSetReadWriteTimeout_NoOpOnZero(t *testing.T) {
 	}
 }
 
+func TestUpdateLinuxChannel_NotInRegistry(t *testing.T) {
+	// 构造一个孤立的 *linuxChannel 指针，registry 中没有它的句柄。
+	// updateLinuxChannel 应静默 no-op（既不 panic，也不 mutate）。
+	c := &linuxChannel{}
+	called := false
+	updateLinuxChannel(SocketCANHandle("__nonexistent_test_iface__"), c, func(*linuxChannel) {
+		called = true
+	})
+	if called {
+		t.Error("mut should not be called when channel is not in registry")
+	}
+}
+
 var _ = time.Second // 保持 import 不报错
