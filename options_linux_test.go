@@ -19,3 +19,15 @@ func TestWithRecvOwnMsgs_SetsField(t *testing.T) {
 		t.Errorf("recvOwnMsgs = %v, want pointer to true", cfg.linux.recvOwnMsgs)
 	}
 }
+
+func TestWithErrFilter_SetsField(t *testing.T) {
+	cfg := newDefaultConfig()
+	WithErrFilter(CANErrBusOff | CANErrTxTimeout)(cfg)
+	if cfg.linux.errFilter == nil {
+		t.Fatal("errFilter is nil")
+	}
+	want := uint32(CANErrBusOff | CANErrTxTimeout)
+	if *cfg.linux.errFilter != want {
+		t.Errorf("errFilter = 0x%X, want 0x%X", *cfg.linux.errFilter, want)
+	}
+}
