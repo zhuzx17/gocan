@@ -14,6 +14,7 @@ type linuxConfig struct {
 	loopback    *bool
 	recvOwnMsgs *bool
 	errFilter   *uint32
+	joinFilters *bool
 }
 
 // applyPlatformOptions 在 Initialize 成功后、startReader 之前调用，
@@ -41,6 +42,11 @@ func applyPlatformOptions(b *Bus, cfg *config) error {
 	if lc.errFilter != nil {
 		if s := raw.SetCANRawErrFilter(b.ch, *lc.errFilter); s != raw.PCAN_ERROR_OK {
 			return wrapStatus(b.adapt, "setsockopt(CAN_RAW_ERR_FILTER)", s)
+		}
+	}
+	if lc.joinFilters != nil {
+		if s := raw.SetCANRawJoinFilters(b.ch, *lc.joinFilters); s != raw.PCAN_ERROR_OK {
+			return wrapStatus(b.adapt, "setsockopt(CAN_RAW_JOIN_FILTERS)", s)
 		}
 	}
 	return nil

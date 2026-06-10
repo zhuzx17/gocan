@@ -44,3 +44,14 @@ func WithErrFilter(mask uint32) Option {
 		c.linux.errFilter = &v
 	}
 }
+
+// WithJoinFilters 设置 CAN_RAW_JOIN_FILTERS 语义：
+// true 表示多个 SetFilter 范围必须**全部**匹配（AND）；false / 默认是任一匹配（OR）。
+// 内核 < 4.1 不支持，setsockopt 会返回 ENOPROTOOPT；调用 Open 时会返回包含
+// PCAN_ERROR_ILLPARAMVAL 的 *Error，提示需要 ≥ 4.1。
+func WithJoinFilters(and bool) Option {
+	return func(c *config) {
+		v := and
+		c.linux.joinFilters = &v
+	}
+}

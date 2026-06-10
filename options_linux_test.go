@@ -31,3 +31,11 @@ func TestWithErrFilter_SetsField(t *testing.T) {
 		t.Errorf("errFilter = 0x%X, want 0x%X", *cfg.linux.errFilter, want)
 	}
 }
+
+func TestWithJoinFilters_SetsField(t *testing.T) {
+	cfg := newDefaultConfig()
+	WithJoinFilters(true)(cfg)
+	if cfg.linux.joinFilters == nil || *cfg.linux.joinFilters != true {
+		t.Errorf("joinFilters = %v, want true", cfg.linux.joinFilters)
+	}
+}
