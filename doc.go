@@ -13,7 +13,7 @@
 //	f, _ := gocan.NewFrame(0x123, []byte{1, 2, 3})
 //	_ = bus.Send(context.Background(), f)
 //
-// 详见 README 与 docs/quickstart.md。
+// 详见 README 与 docs/quickstart-linux.md / docs/quickstart-windows.md。
 //
 // # 平台
 //
