@@ -1,4 +1,4 @@
-module github.com/Crush251/gocan
+module github.com/zhuzxdev/gocan
 
 go 1.22
 

@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzxdev/gocan/raw"
 )
 
 // linuxConfig 聚合 Linux 专属 Option 的可配置项。

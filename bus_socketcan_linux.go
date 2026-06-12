@@ -2,7 +2,7 @@
 
 package gocan
 
-import "github.com/Crush251/gocan/raw"
+import "github.com/zhuzxdev/gocan/raw"
 
 // SetErrFilter 运行期更新 CAN_RAW_ERR_FILTER 掩码。
 // setsockopt 失败时返回错误，linuxChannel 里持久化的 mask 保持原值（与内核状态一致）。

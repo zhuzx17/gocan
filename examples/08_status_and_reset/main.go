@@ -15,7 +15,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/Crush251/gocan"
+	"github.com/zhuzxdev/gocan"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzxdev/gocan/raw"
 )
 
 // withFakeOpener 替换 BusGroup 内部的 Open 钩子为基于 fakeAdapter 的版本，

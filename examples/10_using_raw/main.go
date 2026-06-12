@@ -13,7 +13,7 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzxdev/gocan/raw"
 )
 
 func main() {

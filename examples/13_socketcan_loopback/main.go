@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Crush251/gocan"
+	"github.com/zhuzxdev/gocan"
 )
 
 const totalFrames = 100

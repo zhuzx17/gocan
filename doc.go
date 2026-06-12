@@ -2,7 +2,7 @@
 //
 // 顶层包提供 idiomatic Go 高层 API（Bus / Frame / Option / Error），
 // 大多数应用直接使用本包即可。Windows 后端使用 PCANBasic，Linux 后端使用 SocketCAN。
-// 需要 PCAN 特殊功能或希望进一步定制时，可使用子包 github.com/Crush251/gocan/raw。
+// 需要 PCAN 特殊功能或希望进一步定制时，可使用子包 github.com/zhuzxdev/gocan/raw。
 //
 // # 快速开始
 //

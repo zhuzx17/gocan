@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzxdev/gocan/raw"
 	"golang.org/x/sys/windows"
 )
 

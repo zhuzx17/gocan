@@ -1,6 +1,6 @@
 package gocan
 
-import "github.com/Crush251/gocan/raw"
+import "github.com/zhuzxdev/gocan/raw"
 
 // SocketCAN 返回 Linux SocketCAN 网络接口对应的通道句柄。
 //

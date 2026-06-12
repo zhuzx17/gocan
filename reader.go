@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzxdev/gocan/raw"
 )
 
 // errQueueEmpty 是内部信号：底层报告"队列空"。

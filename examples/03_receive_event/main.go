@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/Crush251/gocan"
+	"github.com/zhuzxdev/gocan"
 )
 
 func main() {
