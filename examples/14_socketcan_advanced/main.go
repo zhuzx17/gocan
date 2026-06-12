@@ -10,6 +10,8 @@
 //
 // 末尾演示运行期通过 SetErrFilter(0) 关闭错误帧订阅。
 
+//go:build linux
+
 package main
 
 import (

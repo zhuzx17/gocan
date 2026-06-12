@@ -4,6 +4,8 @@
 // 演示 WithLoopback(true) + WithRecvOwnMsgs(true) 的组合：
 // 单 vcan 接口上自发自收，验证收发链路无需外部硬件即可做回归测试。
 
+//go:build linux
+
 package main
 
 import (
