@@ -95,3 +95,19 @@ A：可以。`Send` 直接调底层 `CAN_Write`，PCAN 驱动内部串行化。
 
 **Q：可以热插拔吗？**
 A：不行。PCAN-USB 拔掉后下一次 `Send/Read` 会报 `ILLHWHANDLE` 或类似错误，需要 `Close()` 重新 `Open`。
+
+## 平台对照速查
+
+下表把常见症状按 Windows / Linux 分别给出根因，方便跨平台排查。
+
+| 症状 | Windows | Linux |
+|---|---|---|
+| `Open` 报 `ErrNoDriver` | `PCANBasic.dll` 加载失败 — 检查 dll 位置、`GOARCH` 与 dll 架构匹配、`PCANBASIC_DLL_PATH` 环境变量 | SocketCAN 模块未加载 — `sudo modprobe can can_raw vcan` |
+| `Open` 报 `ErrIllParamValue` | 通道未连接（PCAN-USB 没插）/ 波特率与硬件不符 | 网络接口不存在 — `ip link show` 确认 `can0`/`vcan0` 已建并 up |
+| 收不到帧 | 检查发送端是否真的发出 / 通道总线状态 BUSOFF / 滤波器太窄 | 同左 + `WithJoinFilters(true)` 误用导致 AND 滤波 / 没启用 `RecvOwnMsgs` 又想自发自收 |
+| `WithLoopback` 编译报错 | 这是 Linux 专属 Option，Windows 上不存在 | — |
+| FD 帧发送失败 | `OpenFD` 的 `fdBitrate` 字符串字段写错 — 见 [`docs/can-fd.md`](can-fd.md) | 接口未启用 FD — `sudo ip link set canX type can ... fd on` |
+| 高吞吐丢帧 | `WithRxBufferSize` 调大 / 切到 `ModeEvent` | 同左 + `WithSocketBuffers` 调大（受 `net.core.rmem_max` 限制） |
+
+按平台跑通入门：[`docs/quickstart-linux.md`](quickstart-linux.md) / [`docs/quickstart-windows.md`](quickstart-windows.md)。
+所有 Option 速查见 [`docs/options.md`](options.md)。
