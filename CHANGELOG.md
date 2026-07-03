@@ -7,6 +7,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Linux SocketCAN 后端发送 CAN FD 帧时未置 `CANFD_FDF` 标志，导致内核按
+  Classical CAN 处理，>8 字节 payload 被截断/丢弃。修复后所有 FD 帧发送均
+  正确带 FDF 位；BRS / ESI 仍按 `Frame.Flags` 可选叠加。
+- `ReadFD` / `readFDWithTimestamp` 分支放宽：现在按"标准 FD 帧长度 或
+  长度足够且携带 FDF 标志"识别 FD 帧，避免混合总线场景下静默丢帧。
+
 ### Changed
 
 - 仓库迁移到 `github.com/zhuzx17/gocan`，module path 同步更新。所有

@@ -16,6 +16,10 @@ const (
 	linuxCANFrameSize   = 16
 	linuxCANFDFrameSize = 72
 
+	// Linux <linux/can.h> CAN FD flag 位：
+	//   CANFD_FDF (0x04) 标识"这一帧是 CAN FD"，raw socket 发送 FD 帧时必须置位，
+	//   否则内核按 Classical CAN 处理，>8 字节 payload 会被截断。
+	linuxCANFDF   = 0x04
 	linuxCANFDBRS = 0x01
 	linuxCANFDESI = 0x02
 )
@@ -200,8 +204,8 @@ func ReadFD(ch TPCANHandle, m *TPCANMsgFD, t *TPCANTimestampFD) TPCANStatus {
 	if err != nil {
 		return errnoToReadStatus(err)
 	}
-	switch n {
-	case linuxCANFrameSize:
+	switch {
+	case n == linuxCANFrameSize:
 		var cm TPCANMsg
 		if status := decodeLinuxCANFrame(buf[:linuxCANFrameSize], &cm); status != PCAN_ERROR_OK {
 			return status
@@ -210,8 +214,13 @@ func ReadFD(ch TPCANHandle, m *TPCANMsgFD, t *TPCANTimestampFD) TPCANStatus {
 		m.MsgType = cm.MsgType
 		m.DLC = cm.Len
 		copy(m.Data[:], cm.Data[:])
-	case linuxCANFDFrameSize:
-		if status := decodeLinuxCANFDFrame(buf[:], m); status != PCAN_ERROR_OK {
+	case n == linuxCANFDFrameSize || (n >= linuxCANFrameSize && buf[5]&linuxCANFDF != 0):
+		// 非标准长度但携带 FDF 标志的 FD 帧也接受：把实际读到的 n 字节拷贝
+		// 到固定 72 字节 buffer（尾部零填充）后走 FD 解码。避免混合总线上
+		// 中间态被 switch 静默丢帧。
+		var fdBuf [linuxCANFDFrameSize]byte
+		copy(fdBuf[:], buf[:n])
+		if status := decodeLinuxCANFDFrame(fdBuf[:], m); status != PCAN_ERROR_OK {
 			return status
 		}
 	default:
@@ -470,6 +479,9 @@ func encodeLinuxCANFDFrame(m *TPCANMsgFD) ([linuxCANFDFrameSize]byte, TPCANStatu
 	}
 	nativeEndian.PutUint32(buf[0:4], canID)
 	buf[4] = uint8(length)
+	// FDF 位必须置起：raw socket 上没有这位内核按 Classical CAN 处理，
+	// >8 字节 payload 会被截断。BRS / ESI 按上层 Flags 可选叠加。
+	buf[5] = linuxCANFDF
 	if m.MsgType&PCAN_MESSAGE_BRS != 0 {
 		buf[5] |= linuxCANFDBRS
 	}
@@ -676,8 +688,8 @@ func readFDWithTimestamp(c *linuxChannel, m *TPCANMsgFD, t *TPCANTimestampFD) TP
 	if err != nil {
 		return errnoToReadStatus(err)
 	}
-	switch n {
-	case linuxCANFrameSize:
+	switch {
+	case n == linuxCANFrameSize:
 		var cm TPCANMsg
 		if status := decodeLinuxCANFrame(buf[:linuxCANFrameSize], &cm); status != PCAN_ERROR_OK {
 			return status
@@ -686,8 +698,11 @@ func readFDWithTimestamp(c *linuxChannel, m *TPCANMsgFD, t *TPCANTimestampFD) TP
 		m.MsgType = cm.MsgType
 		m.DLC = cm.Len
 		copy(m.Data[:], cm.Data[:])
-	case linuxCANFDFrameSize:
-		if status := decodeLinuxCANFDFrame(buf[:], m); status != PCAN_ERROR_OK {
+	case n == linuxCANFDFrameSize || (n >= linuxCANFrameSize && buf[5]&linuxCANFDF != 0):
+		// 同 ReadFD：非标准长度但带 FDF 标志的 FD 帧一并接受。
+		var fdBuf [linuxCANFDFrameSize]byte
+		copy(fdBuf[:], buf[:n])
+		if status := decodeLinuxCANFDFrame(fdBuf[:], m); status != PCAN_ERROR_OK {
 			return status
 		}
 	default:
