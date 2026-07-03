@@ -95,6 +95,35 @@ func TestLinuxCANFDFrameRejectsInvalidDLC(t *testing.T) {
 	}
 }
 
+// TestLinuxCANFDFrameEncodeSetsFDF 验证发送 FD 帧时始终置 CANFD_FDF (0x04) 位。
+// 内核在 raw socket 上不带 FDF 会按 Classical CAN 处理，>8 字节 payload 被截断。
+func TestLinuxCANFDFrameEncodeSetsFDF(t *testing.T) {
+	cases := []struct {
+		name    string
+		msgType TPCANMessageType
+		want    byte
+	}{
+		{"plain FD", PCAN_MESSAGE_FD, 0x04},
+		{"FD+BRS", PCAN_MESSAGE_FD | PCAN_MESSAGE_BRS, 0x05},
+		{"FD+ESI", PCAN_MESSAGE_FD | PCAN_MESSAGE_ESI, 0x06},
+		{"FD+BRS+ESI", PCAN_MESSAGE_FD | PCAN_MESSAGE_BRS | PCAN_MESSAGE_ESI, 0x07},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			in := &TPCANMsgFD{ID: 0x123, MsgType: tc.msgType, DLC: 2}
+			in.Data[0] = 0xDE
+			in.Data[1] = 0xAD
+			buf, status := encodeLinuxCANFDFrame(in)
+			if status != PCAN_ERROR_OK {
+				t.Fatalf("encode status = 0x%X, want OK", uint32(status))
+			}
+			if buf[5] != tc.want {
+				t.Errorf("buf[5] = 0x%02X, want 0x%02X", buf[5], tc.want)
+			}
+		})
+	}
+}
+
 func TestSocketCANFilters_StandardExactID(t *testing.T) {
 	filters, status := socketCANFilters(0x123, 0x123, PCAN_MESSAGE_STANDARD)
 	if status != PCAN_ERROR_OK {
