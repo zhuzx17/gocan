@@ -5,6 +5,30 @@
 文件格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本 2.0.0](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Changed
+
+- 仓库迁移到 `github.com/zhuzx17/gocan`，module path 同步更新。所有
+  `import "github.com/Crush251/gocan"` 需改为 `import "github.com/zhuzx17/gocan"`。
+  GitHub 在一段时间内会保留旧 URL 的 redirect，但建议尽快更新。
+
+### Added
+
+- BusGroup：按业务名字管理多个 `*Bus`，提供合流接收 (`Receive() <-chan SourcedFrame`)、聚合关闭 (`*GroupCloseError`)、`Each` 遍历等方法。
+- Linux SocketCAN 自定义参数：`WithLoopback` / `WithRecvOwnMsgs` / `WithErrFilter` / `WithJoinFilters` / `WithRecvTimestamp` / `WithSocketBuffers` / `WithRWTimeout`。
+- 运行期方法：`(b *Bus) SetErrFilter(uint32)` / `SetJoinFilters(bool)`，Linux 真实生效，其它平台返回 `ErrNotSupported`。
+- 4 个新示例：`examples/11_busgroup_socketcan` / `12_busgroup_fan_in` / `13_socketcan_loopback` / `14_socketcan_advanced`。
+- 工具：`scripts/setup-vcan.sh` 一键创建 / 销毁 vcan 接口；`justfile` 别名 `vcan-up` / `vcan-down`。
+
+### Documentation
+
+- 拆分 `docs/quickstart.md` → `docs/quickstart-linux.md` + `docs/quickstart-windows.md`，
+  各自独立讲清 Classical 与 CAN FD 的 5 分钟启动流程。
+- 新增 `docs/options.md`：所有 `WithXxx` Option 集中速查表 + 平台标注 + 详细行为说明。
+- 新增 `docs/socketcan-options.md`：Linux 专属 Option 深度阅读（每项对应 setsockopt 名 + 内核版本要求）。
+- `docs/troubleshooting.md` 增加「平台对照速查」段：常见失败按 Windows / Linux 分别给出根因。
+
 ## [0.1.0] - 2026-05-22
 
 首个公开版本：Windows 上的 PEAK PCANBasic.dll Go 封装。
@@ -63,4 +87,4 @@
 - 测试覆盖率 80%+，`-race` 通过
 - GitHub Actions：Linux runner 跑 vet + golangci-lint + race test + 跨平台编译（windows/amd64+386）；Windows runner 跑 vet + 普通 test
 
-[0.1.0]: https://github.com/Crush251/gocan/releases/tag/v0.1.0
+[0.1.0]: https://github.com/zhuzx17/gocan/releases/tag/v0.1.0

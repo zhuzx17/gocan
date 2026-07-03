@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 // vcanIface 返回一个可用 vcan 接口名；不存在则跳过测试。

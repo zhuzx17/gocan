@@ -14,7 +14,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Crush251/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 // slogAdapter 把 *slog.Logger 适配为 gocan.Logger 接口。

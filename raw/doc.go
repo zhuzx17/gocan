@@ -4,7 +4,7 @@
 // 适合需要 PCAN 特殊功能（Trace、Flash、设备信息查询、任意 Parameter 读写等）
 // 或需要在 gocan 顶层包之外自行做更高层封装的用户。
 //
-// 大多数应用建议直接使用顶层 github.com/Crush251/gocan 包。
+// 大多数应用建议直接使用顶层 github.com/zhuzx17/gocan 包。
 //
 // # 平台
 //

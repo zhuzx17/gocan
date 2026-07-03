@@ -11,7 +11,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/Crush251/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {

@@ -2,11 +2,11 @@
 
 > Go CAN / CAN FD 多后端库：Windows 走 PEAK-System PCANBasic，Linux 走 SocketCAN。
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/Crush251/gocan.svg)](https://pkg.go.dev/github.com/Crush251/gocan)
-[![CI](https://github.com/Crush251/gocan/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Crush251/gocan/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/Crush251/gocan/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/Crush251/gocan/actions/workflows/codeql.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Crush251/gocan)](https://goreportcard.com/report/github.com/Crush251/gocan)
-[![codecov](https://codecov.io/gh/Crush251/gocan/branch/main/graph/badge.svg)](https://codecov.io/gh/Crush251/gocan)
+[![Go Reference](https://pkg.go.dev/badge/github.com/zhuzx17/gocan.svg)](https://pkg.go.dev/github.com/zhuzx17/gocan)
+[![CI](https://github.com/zhuzx17/gocan/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/zhuzx17/gocan/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/zhuzx17/gocan/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/zhuzx17/gocan/actions/workflows/codeql.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zhuzx17/gocan)](https://goreportcard.com/report/github.com/zhuzx17/gocan)
+[![codecov](https://codecov.io/gh/zhuzx17/gocan/branch/main/graph/badge.svg)](https://codecov.io/gh/zhuzx17/gocan)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 `gocan` 提供统一的 Go `Bus` API，让程序能在 Windows PCANBasic 和 Linux SocketCAN
@@ -48,32 +48,12 @@
 
 ## 快速开始
 
-```go
-package main
+按你的平台跳转：
 
-import (
-    "context"
-    "log"
+- 🐧 **Linux**（SocketCAN）→ [docs/quickstart-linux.md](docs/quickstart-linux.md)
+- 🪟 **Windows**（PEAK PCAN）→ [docs/quickstart-windows.md](docs/quickstart-windows.md)
 
-    "github.com/Crush251/gocan"
-)
-
-func main() {
-    bus, err := gocan.Open(
-        gocan.USBBus1,
-        gocan.WithBitrate(gocan.Baud1M),
-    )
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer bus.Close()
-
-    frame, _ := gocan.NewFrame(0x123, []byte{0x01, 0x02, 0x03, 0x04})
-    if err := bus.Send(context.Background(), frame); err != nil {
-        log.Fatal(err)
-    }
-}
-```
+完整 Option 总览：[docs/options.md](docs/options.md)
 
 ---
 

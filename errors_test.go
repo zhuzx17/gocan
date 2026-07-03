@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 func TestError_Has_OKBoundary(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/Crush251/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 // Bus 表示一个已初始化的 CAN/CAN FD 通道。
