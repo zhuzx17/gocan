@@ -11,7 +11,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 // 80 MHz 时钟下的 1Mbit 仲裁 + 2Mbit 数据段示例参数。

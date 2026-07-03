@@ -2,11 +2,11 @@
 
 > Go CAN / CAN FD 多后端库：Windows 走 PEAK-System PCANBasic，Linux 走 SocketCAN。
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/zhuzxdev/gocan.svg)](https://pkg.go.dev/github.com/zhuzxdev/gocan)
-[![CI](https://github.com/zhuzxdev/gocan/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/zhuzxdev/gocan/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/zhuzxdev/gocan/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/zhuzxdev/gocan/actions/workflows/codeql.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/zhuzxdev/gocan)](https://goreportcard.com/report/github.com/zhuzxdev/gocan)
-[![codecov](https://codecov.io/gh/zhuzxdev/gocan/branch/main/graph/badge.svg)](https://codecov.io/gh/zhuzxdev/gocan)
+[![Go Reference](https://pkg.go.dev/badge/github.com/zhuzx17/gocan.svg)](https://pkg.go.dev/github.com/zhuzx17/gocan)
+[![CI](https://github.com/zhuzx17/gocan/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/zhuzx17/gocan/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/zhuzx17/gocan/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/zhuzx17/gocan/actions/workflows/codeql.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zhuzx17/gocan)](https://goreportcard.com/report/github.com/zhuzx17/gocan)
+[![codecov](https://codecov.io/gh/zhuzx17/gocan/branch/main/graph/badge.svg)](https://codecov.io/gh/zhuzx17/gocan)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 `gocan` 提供统一的 Go `Bus` API，让程序能在 Windows PCANBasic 和 Linux SocketCAN

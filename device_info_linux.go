@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net"
 
-	"github.com/zhuzxdev/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 func getDeviceInfo(ch Channel) (DeviceInfo, error) {

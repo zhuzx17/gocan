@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/zhuzxdev/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 // 库内部错误（参数校验、状态等）。

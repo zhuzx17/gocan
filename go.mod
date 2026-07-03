@@ -1,4 +1,4 @@
-module github.com/zhuzxdev/gocan
+module github.com/zhuzx17/gocan
 
 go 1.22
 

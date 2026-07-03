@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 const fdBitrate = "f_clock=80000000, " +

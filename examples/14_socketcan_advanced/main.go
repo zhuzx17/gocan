@@ -19,7 +19,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {

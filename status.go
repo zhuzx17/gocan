@@ -1,6 +1,6 @@
 package gocan
 
-import "github.com/zhuzxdev/gocan/raw"
+import "github.com/zhuzx17/gocan/raw"
 
 // Status 是 PCAN 通道当前状态的位掩码值。
 //

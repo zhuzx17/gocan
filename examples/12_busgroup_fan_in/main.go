@@ -12,7 +12,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func handleEngine(f gocan.Frame)    { log.Printf("engine: 0x%X %X", f.ID, f.Data) }

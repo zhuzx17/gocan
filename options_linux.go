@@ -5,7 +5,7 @@ package gocan
 import (
 	"time"
 
-	"github.com/zhuzxdev/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 // CAN 错误帧位掩码（与 raw 包对应常量等价）。

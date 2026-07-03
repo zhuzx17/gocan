@@ -29,7 +29,7 @@ sudo ip link set vcan0 up
 ## 2. 安装库
 
 ```bash
-go get github.com/zhuzxdev/gocan@latest
+go get github.com/zhuzx17/gocan@latest
 ```
 
 ## 3. Classical CAN 收发
@@ -44,7 +44,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {
@@ -109,7 +109,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {
@@ -186,7 +186,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {

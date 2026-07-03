@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhuzxdev/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 // withFakeOpener 替换 BusGroup 内部的 Open 钩子为基于 fakeAdapter 的版本，

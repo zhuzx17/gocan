@@ -28,7 +28,7 @@ PCAN 驱动安装包自带 `PCANBasic.dll`，路径通常为：
 ## 3. 安装库
 
 ```cmd
-go get github.com/zhuzxdev/gocan@latest
+go get github.com/zhuzx17/gocan@latest
 ```
 
 ## 4. Classical CAN 收发
@@ -42,7 +42,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {
@@ -94,7 +94,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {
@@ -148,7 +148,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/zhuzxdev/gocan"
+	"github.com/zhuzx17/gocan"
 )
 
 func main() {

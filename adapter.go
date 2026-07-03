@@ -3,7 +3,7 @@ package gocan
 import (
 	"unsafe"
 
-	"github.com/zhuzxdev/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 // rawAdapter 是 Bus 用到的底层调用接口抽象，便于测试时注入 fake。

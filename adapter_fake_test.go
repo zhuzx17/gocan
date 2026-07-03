@@ -4,7 +4,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/zhuzxdev/gocan/raw"
+	"github.com/zhuzx17/gocan/raw"
 )
 
 // fakeAdapter 是测试用 rawAdapter 实现：可编程返回状态、记录调用、注入收到的帧。

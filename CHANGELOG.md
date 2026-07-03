@@ -9,8 +9,8 @@
 
 ### Changed
 
-- 仓库迁移到 `github.com/zhuzxdev/gocan`，module path 同步更新。所有
-  `import "github.com/Crush251/gocan"` 需改为 `import "github.com/zhuzxdev/gocan"`。
+- 仓库迁移到 `github.com/zhuzx17/gocan`，module path 同步更新。所有
+  `import "github.com/Crush251/gocan"` 需改为 `import "github.com/zhuzx17/gocan"`。
   GitHub 在一段时间内会保留旧 URL 的 redirect，但建议尽快更新。
 
 ### Added
@@ -87,4 +87,4 @@
 - 测试覆盖率 80%+，`-race` 通过
 - GitHub Actions：Linux runner 跑 vet + golangci-lint + race test + 跨平台编译（windows/amd64+386）；Windows runner 跑 vet + 普通 test
 
-[0.1.0]: https://github.com/zhuzxdev/gocan/releases/tag/v0.1.0
+[0.1.0]: https://github.com/zhuzx17/gocan/releases/tag/v0.1.0
