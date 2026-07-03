@@ -124,6 +124,71 @@ func TestLinuxCANFDFrameEncodeSetsFDF(t *testing.T) {
 	}
 }
 
+// TestLinuxCANFDFrameRoundTripSmall 验证 2 字节 payload 的 FD 帧
+// encode → decode 数据、DLC、FDF 位全部保留（回归 L30 使能帧场景）。
+func TestLinuxCANFDFrameRoundTripSmall(t *testing.T) {
+	in := &TPCANMsgFD{ID: 0x123, MsgType: PCAN_MESSAGE_FD, DLC: 2}
+	in.Data[0] = 0xDE
+	in.Data[1] = 0xAD
+
+	buf, status := encodeLinuxCANFDFrame(in)
+	if status != PCAN_ERROR_OK {
+		t.Fatalf("encode status = 0x%X, want OK", uint32(status))
+	}
+	if buf[5]&linuxCANFDF == 0 {
+		t.Fatalf("encoded buf[5] = 0x%02X, missing CANFD_FDF", buf[5])
+	}
+
+	var out TPCANMsgFD
+	if status := decodeLinuxCANFDFrame(buf[:], &out); status != PCAN_ERROR_OK {
+		t.Fatalf("decode status = 0x%X, want OK", uint32(status))
+	}
+	if out.ID != in.ID {
+		t.Errorf("ID = 0x%X, want 0x%X", out.ID, in.ID)
+	}
+	if out.DLC != in.DLC {
+		t.Errorf("DLC = %d, want %d", out.DLC, in.DLC)
+	}
+	if out.MsgType&PCAN_MESSAGE_FD == 0 {
+		t.Errorf("decoded MsgType = 0x%X, missing PCAN_MESSAGE_FD", out.MsgType)
+	}
+	if out.Data[0] != 0xDE || out.Data[1] != 0xAD {
+		t.Errorf("Data[0..1] = %02X %02X, want DE AD", out.Data[0], out.Data[1])
+	}
+}
+
+// TestLinuxCANFDFrameRoundTripLarge 验证 48 字节 payload 的 FD 帧
+// encode → decode 数据不被截断（回归 L30 位置帧场景）。
+func TestLinuxCANFDFrameRoundTripLarge(t *testing.T) {
+	in := &TPCANMsgFD{ID: 0x456, MsgType: PCAN_MESSAGE_FD, DLC: 14} // DLC=14 → 48 bytes
+	for i := 0; i < 48; i++ {
+		in.Data[i] = byte(0xA0 + i&0x0F)
+	}
+
+	buf, status := encodeLinuxCANFDFrame(in)
+	if status != PCAN_ERROR_OK {
+		t.Fatalf("encode status = 0x%X, want OK", uint32(status))
+	}
+	if buf[5]&linuxCANFDF == 0 {
+		t.Fatalf("encoded buf[5] = 0x%02X, missing CANFD_FDF", buf[5])
+	}
+
+	var out TPCANMsgFD
+	if status := decodeLinuxCANFDFrame(buf[:], &out); status != PCAN_ERROR_OK {
+		t.Fatalf("decode status = 0x%X, want OK", uint32(status))
+	}
+	if out.ID != in.ID || out.DLC != in.DLC {
+		t.Fatalf("decoded header = {ID:0x%X DLC:%d}, want {ID:0x%X DLC:%d}",
+			out.ID, out.DLC, in.ID, in.DLC)
+	}
+	for i := 0; i < 48; i++ {
+		if out.Data[i] != in.Data[i] {
+			t.Fatalf("Data[%d] = 0x%02X, want 0x%02X — payload truncated?",
+				i, out.Data[i], in.Data[i])
+		}
+	}
+}
+
 func TestSocketCANFilters_StandardExactID(t *testing.T) {
 	filters, status := socketCANFilters(0x123, 0x123, PCAN_MESSAGE_STANDARD)
 	if status != PCAN_ERROR_OK {
