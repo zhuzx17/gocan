@@ -204,8 +204,8 @@ func ReadFD(ch TPCANHandle, m *TPCANMsgFD, t *TPCANTimestampFD) TPCANStatus {
 	if err != nil {
 		return errnoToReadStatus(err)
 	}
-	switch n {
-	case linuxCANFrameSize:
+	switch {
+	case n == linuxCANFrameSize:
 		var cm TPCANMsg
 		if status := decodeLinuxCANFrame(buf[:linuxCANFrameSize], &cm); status != PCAN_ERROR_OK {
 			return status
@@ -214,8 +214,13 @@ func ReadFD(ch TPCANHandle, m *TPCANMsgFD, t *TPCANTimestampFD) TPCANStatus {
 		m.MsgType = cm.MsgType
 		m.DLC = cm.Len
 		copy(m.Data[:], cm.Data[:])
-	case linuxCANFDFrameSize:
-		if status := decodeLinuxCANFDFrame(buf[:], m); status != PCAN_ERROR_OK {
+	case n == linuxCANFDFrameSize || (n >= linuxCANFrameSize && buf[5]&linuxCANFDF != 0):
+		// 非标准长度但携带 FDF 标志的 FD 帧也接受：把实际读到的 n 字节拷贝
+		// 到固定 72 字节 buffer（尾部零填充）后走 FD 解码。避免混合总线上
+		// 中间态被 switch 静默丢帧。
+		var fdBuf [linuxCANFDFrameSize]byte
+		copy(fdBuf[:], buf[:n])
+		if status := decodeLinuxCANFDFrame(fdBuf[:], m); status != PCAN_ERROR_OK {
 			return status
 		}
 	default:
@@ -683,8 +688,8 @@ func readFDWithTimestamp(c *linuxChannel, m *TPCANMsgFD, t *TPCANTimestampFD) TP
 	if err != nil {
 		return errnoToReadStatus(err)
 	}
-	switch n {
-	case linuxCANFrameSize:
+	switch {
+	case n == linuxCANFrameSize:
 		var cm TPCANMsg
 		if status := decodeLinuxCANFrame(buf[:linuxCANFrameSize], &cm); status != PCAN_ERROR_OK {
 			return status
@@ -693,8 +698,11 @@ func readFDWithTimestamp(c *linuxChannel, m *TPCANMsgFD, t *TPCANTimestampFD) TP
 		m.MsgType = cm.MsgType
 		m.DLC = cm.Len
 		copy(m.Data[:], cm.Data[:])
-	case linuxCANFDFrameSize:
-		if status := decodeLinuxCANFDFrame(buf[:], m); status != PCAN_ERROR_OK {
+	case n == linuxCANFDFrameSize || (n >= linuxCANFrameSize && buf[5]&linuxCANFDF != 0):
+		// 同 ReadFD：非标准长度但带 FDF 标志的 FD 帧一并接受。
+		var fdBuf [linuxCANFDFrameSize]byte
+		copy(fdBuf[:], buf[:n])
+		if status := decodeLinuxCANFDFrame(fdBuf[:], m); status != PCAN_ERROR_OK {
 			return status
 		}
 	default:
