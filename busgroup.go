@@ -30,8 +30,10 @@ type BusGroup struct {
 // busOpenFn / busOpenFDFn 是 Open / OpenFD 的可替换钩子，仅供测试注入 fake adapter。
 // 生产代码外部不应替换。
 var (
-	busOpenFn   = Open
-	busOpenFDFn = OpenFD
+	busOpenFn        = Open
+	busOpenFDFn      = OpenFD
+	busOpenSLCANFn   = OpenSLCAN
+	busOpenSLCANFDFn = OpenSLCANFD
 )
 
 // NewBusGroup 创建空 group。
@@ -53,15 +55,33 @@ func NewBusGroup(outBufferSize int) *BusGroup {
 //   - 底层 Open 失败 → 返回相应错误，group 状态不变
 //   - group 已 Close → ErrBusClosed
 func (g *BusGroup) Add(name string, ch Channel, opts ...Option) (*Bus, error) {
-	return g.add(name, false, "", ch, opts...)
+	return g.addOpened(name, func() (*Bus, error) {
+		return busOpenFn(ch, opts...)
+	})
 }
 
 // AddFD 等价于 Add，但调底层 OpenFD。
 func (g *BusGroup) AddFD(name string, ch Channel, fdBitrate string, opts ...Option) (*Bus, error) {
-	return g.add(name, true, fdBitrate, ch, opts...)
+	return g.addOpened(name, func() (*Bus, error) {
+		return busOpenFDFn(ch, fdBitrate, opts...)
+	})
 }
 
-func (g *BusGroup) add(name string, fd bool, fdBitrate string, ch Channel, opts ...Option) (*Bus, error) {
+// AddSLCAN opens a Classical CAN SLCAN serial port and adds it to the group.
+func (g *BusGroup) AddSLCAN(name, port string, bitrate SLCANBitrate, opts ...Option) (*Bus, error) {
+	return g.addOpened(name, func() (*Bus, error) {
+		return busOpenSLCANFn(port, bitrate, opts...)
+	})
+}
+
+// AddSLCANFD opens a CANable 2.0 SLCAN-FD serial port and adds it to the group.
+func (g *BusGroup) AddSLCANFD(name, port string, bitrate SLCANBitrate, dataBitrate SLCANDataBitrate, opts ...Option) (*Bus, error) {
+	return g.addOpened(name, func() (*Bus, error) {
+		return busOpenSLCANFDFn(port, bitrate, dataBitrate, opts...)
+	})
+}
+
+func (g *BusGroup) addOpened(name string, open func() (*Bus, error)) (*Bus, error) {
 	if name == "" {
 		return nil, ErrInvalidName
 	}
@@ -75,15 +95,7 @@ func (g *BusGroup) add(name string, fd bool, fdBitrate string, ch Channel, opts 
 		return nil, ErrDuplicateName
 	}
 
-	var (
-		bus *Bus
-		err error
-	)
-	if fd {
-		bus, err = busOpenFDFn(ch, fdBitrate, opts...)
-	} else {
-		bus, err = busOpenFn(ch, opts...)
-	}
+	bus, err := open()
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +139,7 @@ func (g *BusGroup) Names() []string {
 }
 
 // Each 在持有读锁下按 Names 顺序遍历每个 Bus。
-// fn 内禁止调 Add/AddFD/Close —— 会死锁，race 模式下会被检测出来。
+// fn 内禁止调 Add/AddFD/AddSLCAN/AddSLCANFD/Close —— 会死锁，race 模式下会被检测出来。
 func (g *BusGroup) Each(fn func(name string, bus *Bus)) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()

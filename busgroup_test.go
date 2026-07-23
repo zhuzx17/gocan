@@ -95,6 +95,29 @@ func TestBusGroup_AddFD(t *testing.T) {
 	}
 }
 
+func TestBusGroup_AddSLCANFD(t *testing.T) {
+	withFakeOpener(t)
+	port := newFakeSLCANPort()
+	previous := busOpenSLCANFDFn
+	busOpenSLCANFDFn = func(name string, nominal SLCANBitrate, data SLCANDataBitrate, opts ...Option) (*Bus, error) {
+		return openSLCANWith(func(string, int) (slcanPort, error) { return port, nil }, name, nominal, data, true, opts...)
+	}
+	t.Cleanup(func() { busOpenSLCANFDFn = previous })
+
+	g := NewBusGroup(0)
+	bus, err := g.AddSLCANFD("canable", "COM9", SLCANBitrate500K, SLCANDataBitrate2M,
+		WithReceiveMode(ModePolling))
+	if err != nil {
+		t.Fatalf("AddSLCANFD: %v", err)
+	}
+	if got, _ := g.Get("canable"); got != bus {
+		t.Fatal("Get(canable) mismatch")
+	}
+	if err := g.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+}
+
 func TestBusGroup_EachOrder(t *testing.T) {
 	withFakeOpener(t)
 	g := NewBusGroup(0)
