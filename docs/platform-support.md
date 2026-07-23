@@ -9,8 +9,21 @@
 | Linux | amd64/arm64 等 | ✓（SocketCAN） | ✓ | ✓（无硬件单测 + fake adapter） |
 | macOS | any | ✗ | ✓ | ✓（fake adapter） |
 
-> "真机"意味着 `Open()` 能成功返回可工作的 `Bus`。Windows 使用 PCANBasic 通道，
-> Linux 使用 SocketCAN 网络接口；macOS 当前仅保留编译桩。
+> "真机"意味着至少一个后端能返回可工作的 `Bus`。Windows 支持 PCANBasic 和串口
+> CANable 2.0 SLCAN-FD，Linux 支持 SocketCAN 和串口 SLCAN；macOS 的 PCAN API
+> 是编译桩，但串口 SLCAN 可用。
+
+## CANable 2.0 SLCAN-FD
+
+串口后端不依赖 `PCANBasic.dll`：
+
+- `OpenSLCAN("COM5", SLCANBitrate500K)` 打开 Classical CAN
+- `OpenSLCANFD("COM5", SLCANBitrate500K, SLCANDataBitrate2M)` 打开 CAN FD
+- `LookupSLCANPorts()` 枚举串口；官方固件 VID:PID `16D0:117E` 会标记 `CANable2=true`
+- 支持标准/扩展帧、RTR、FD、BRS 和 0..64 字节 CAN FD DLC
+- `ModeEvent`、硬件过滤和 `Status` 不受 CANable 固件协议支持
+
+详细说明见 [`slcan-windows.md`](slcan-windows.md)。
 
 ## DLL 加载策略
 

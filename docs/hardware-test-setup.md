@@ -1,6 +1,8 @@
 # 硬件测试环境搭建
 
-本库的单元测试用 fake adapter，所有平台都能跑。但真机验证只能在 Windows + 真实 PCAN 设备上做——这篇文档说明怎么搭这套环境。
+本库的单元测试使用 fake adapter 和 fake serial port，所有平台都能跑。PCAN 真机测试
+需要 Windows + 真实 PCAN 设备；CANable 2.0 SLCAN-FD 测试需要设备刷入官方
+`canable2-fw` 并连接到另一总线节点。
 
 ## 硬件
 
@@ -10,6 +12,7 @@
 - **CAN 标准 9-pin D-Sub 双绞对接线**（或自己用杜邦线接 CAN-H/CAN-L + 120Ω 端电阻）
 
 更便宜方案：一根 PCAN-USB + 任意能发帧的 CAN 节点（ECU、Arduino + MCP2515 等）。
+CAN FD 可使用一根 CANable 2.0 加任意能 ACK 对应位率的 CAN FD 节点。
 
 ## 软件
 
@@ -38,6 +41,12 @@ go run ./examples/02_receive_polling -channel=USBBus2
 ```
 
 两根 USB 互通的话，第二条命令应能看到第一条发出的 0x123 帧。
+
+CANable 2.0 SLCAN-FD：
+
+```cmd
+go run ./examples/15_canable_slcan_fd -port COM5
+```
 
 ## 跑带硬件标签的测试
 
