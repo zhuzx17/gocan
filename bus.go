@@ -15,6 +15,7 @@ import (
 type Bus struct {
 	ch    raw.TPCANHandle
 	adapt rawAdapter
+	slcan *slcanBackend
 	cfg   *config
 	isFD  bool
 
@@ -153,6 +154,9 @@ func (b *Bus) Send(ctx context.Context, f Frame) error {
 	if !b.isFD && f.Has(FlagFD) {
 		return ErrFDNotSupportedOnBus
 	}
+	if b.slcan != nil {
+		return b.slcan.send(f)
+	}
 
 	if f.Has(FlagFD) {
 		m := toRawMsgFD(f)
@@ -187,18 +191,25 @@ func (b *Bus) SendMany(ctx context.Context, frames []Frame) error {
 // Status 查询通道当前状态。
 //
 // 返回的 Status 是位掩码，使用 StatusHas 判断具体位。
+// CANable 2.0 SLCAN-FD 固件不提供可安全用于帧流的状态查询，返回 ErrNotSupported。
 func (b *Bus) Status() (Status, error) {
 	if b.closed.Load() {
 		return 0, ErrBusClosed
 	}
+	if b.slcan != nil {
+		return 0, ErrNotSupported
+	}
 	return Status(b.adapt.GetStatus(b.ch)), nil
 }
 
-// Reset 复位通道，清空 PCAN 内部的收发队列。
+// Reset 复位通道。PCAN/SocketCAN 清空底层收发队列；SLCAN 发送 C/O 重开通道。
 // 通常用于 BUSOFF 恢复。
 func (b *Bus) Reset() error {
 	if b.closed.Load() {
 		return ErrBusClosed
+	}
+	if b.slcan != nil {
+		return b.slcan.reset()
 	}
 	if s := b.adapt.Reset(b.ch); s != raw.PCAN_ERROR_OK {
 		return wrapStatus(b.adapt, "CAN_Reset", s)
@@ -213,6 +224,9 @@ func (b *Bus) Reset() error {
 func (b *Bus) SetFilter(idMin, idMax uint32, mode FilterMode) error {
 	if b.closed.Load() {
 		return ErrBusClosed
+	}
+	if b.slcan != nil {
+		return ErrNotSupported
 	}
 	var mt raw.TPCANMessageType
 	if mode == FilterExtended {
@@ -230,6 +244,9 @@ func (b *Bus) ResetFilter() error {
 	if b.closed.Load() {
 		return ErrBusClosed
 	}
+	if b.slcan != nil {
+		return ErrNotSupported
+	}
 	v := uint32(raw.PCAN_FILTER_OPEN)
 	s := b.adapt.SetValue(b.ch, raw.PCAN_MESSAGE_FILTER,
 		unsafe.Pointer(&v), uint32(unsafe.Sizeof(v)))
@@ -239,7 +256,7 @@ func (b *Bus) ResetFilter() error {
 	return nil
 }
 
-// Close 释放底层通道。幂等：多次调用安全。
+// Close 释放底层通道或串口。幂等：多次调用安全。
 //
 // 流程：标记 closed → 关闭 closing → 触发 abort event 唤醒 reader →
 // 等 reader 关闭 rxCh → 释放 event 句柄 → Uninitialize → 关闭 errCh。
@@ -248,6 +265,14 @@ func (b *Bus) Close() error {
 	b.closeOnce.Do(func() {
 		b.closed.Store(true)
 		close(b.closing)
+		if b.slcan != nil {
+			// Closing the port wakes a serial Read that may currently be blocked.
+			err = b.slcan.close()
+			for range b.rxCh {
+			}
+			close(b.errCh)
+			return
+		}
 		// Event 模式下需要 SetEvent 唤醒阻塞在 WaitForMultipleObjects 的 reader。
 		b.closeEventMode()
 		// 等 reader goroutine 退出 —— 它在退出时关闭 rxCh。

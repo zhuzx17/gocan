@@ -37,6 +37,11 @@ func (b *Bus) readerLoop() {
 			}
 			if err != nil {
 				select {
+				case <-b.closing:
+					return
+				default:
+				}
+				select {
 				case b.errCh <- err:
 				default: // errCh 满则丢弃（按 spec §3.5：errCh 是"提示性"通道）
 				}
@@ -78,6 +83,9 @@ func (b *Bus) waitForData() bool {
 
 // readOnce 从底层读一帧。队列空返回 errQueueEmpty（内部信号）。
 func (b *Bus) readOnce() (Frame, error) {
+	if b.slcan != nil {
+		return b.slcan.readFrame()
+	}
 	if b.isFD {
 		return b.readOnceFD()
 	}

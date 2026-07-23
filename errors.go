@@ -21,12 +21,16 @@ var (
 	ErrRemoteOnFD = errors.New("can: remote frame not allowed on CAN FD")
 	// ErrBusClosed 表示 Bus 已被关闭，后续操作非法。
 	ErrBusClosed = errors.New("can: bus is closed")
-	// ErrNotSupported 表示当前平台不支持此操作（如非 Windows 试图打开真实通道）。
-	ErrNotSupported = errors.New("can: operation not supported on this platform")
+	// ErrNotSupported 表示当前平台或后端协议不支持此操作。
+	ErrNotSupported = errors.New("can: operation not supported by current backend")
 	// ErrDLLNotFound 表示 PCANBasic.dll 加载失败。
 	ErrDLLNotFound = errors.New("can: PCANBasic.dll not found or failed to load")
 	// ErrFDNotSupportedOnBus 表示在非 FD Bus 上尝试发送 FD 帧。
-	ErrFDNotSupportedOnBus = errors.New("can: FD frame requires a bus opened with OpenFD")
+	ErrFDNotSupportedOnBus = errors.New("can: FD frame requires a bus opened with OpenFD or OpenSLCANFD")
+	// ErrSLCANProtocol 表示串口收到的记录不符合 CANable 2.0 SLCAN-FD 格式。
+	ErrSLCANProtocol = errors.New("can: malformed SLCAN record")
+	// ErrSLCANESINotSupported 表示尝试发送协议无法表达的 ESI 标志。
+	ErrSLCANESINotSupported = errors.New("can: CANable SLCAN-FD cannot encode ESI")
 )
 
 // 队列状态相关错误。
