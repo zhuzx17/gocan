@@ -1,31 +1,28 @@
 # 架构
 
-## 双层结构
+## 高层 API 与后端
 
 ```
-+----------------------------------------------------+
-|  顶层 idiomatic API                                |
-|  Bus / Frame / Option / Error / Logger / SendMany  |
-+----------------------------------------------------+
-                       │ 调用
-                       ▼
-+----------------------------------------------------+
-|  raw 子包  (薄包装 + syscall)                       |
-|  Initialize / Read / ReadFD / Write / WriteFD ...  |
-+----------------------------------------------------+
-                       │ Windows syscall
-                       ▼
-                 PCANBasic.dll
++---------------------------------------------------------+
+| Bus / Frame / Option / Error / Logger / SendMany        |
++------------------+------------------+-------------------+
+                   |                  |
+           +-------v------+   +-------v-------+
+           | raw adapter  |   | SLCAN codec   |
+           +---+-------+--+   +-------+-------+
+               |       |              |
+       PCANBasic.dll  SocketCAN   serial / COMx
 ```
 
-- **顶层包**：把 PCAN 的 C 语义翻译成 Go 习惯——channel、context、interface、`errors.Is`。99% 的用户只用这层。
-- **raw 子包**：和 DLL 一一对应，零抽象。需要 PCAN 特殊参数（`PCAN_API_VERSION`、`PCAN_LISTEN_ONLY` 等）时直接调它。
+- **顶层包**：统一生命周期、channel、context、`Frame` 和错误语义。应用通常只用这层。
+- **raw 子包**：Windows 对接 PCANBasic，Linux 对接 SocketCAN；需要 PCAN 特殊参数时可直接使用。
+- **SLCAN 后端**：直接管理串口并编解码 CANable 2.0 的 Lawicel 扩展，不经过 `raw` 子包。
 
 ## 单 reader goroutine 模型
 
 ```
                 +---------------------+
-   PCAN queue → | reader goroutine    |
+ backend queue → | reader goroutine    |
                 |  loop:              |
                 |   1. waitForData()  |
                 |   2. drain via Read |
@@ -39,17 +36,18 @@
 
 为什么单 reader：
 
-- PCAN 的 `CAN_Read` 是非阻塞、共享队列。多 goroutine 直接调用会争抢同一个队列，且无法保证顺序。
+- PCAN、SocketCAN 和串口接收都由一个 goroutine 排序后写入统一队列，避免多读者争抢底层输入。
 - 集中到一个 goroutine 负责底层 Read 之后，上层并发拿帧只是从 channel 取，天然安全。
 
-`Send` / `Status` / `Reset` 是无状态查询/动作，可以从任意 goroutine 直接调用，不走 reader。
+`Send` / `Reset` 可以从任意 goroutine 调用，不走 reader。CANable 固件没有可靠的流式
+状态查询，所以 SLCAN 后端的 `Status` 返回 `ErrNotSupported`。
 
 ## 接收模式
 
 | 模式 | 平台 | 实现 | 何时用 |
 |---|---|---|---|
 | `ModePolling` | 全平台 | 周期 `time.Sleep(pollInterval)` 后 drain 队列 | 想完全可移植；可接受 ~1ms 抖动 |
-| `ModeEvent` | Windows | `CreateEvent` + `WaitForMultipleObjects` | 低延迟、低 CPU；硬件支持 |
+| `ModeEvent` | Windows PCAN | `CreateEvent` + `WaitForMultipleObjects` | 低延迟、低 CPU；硬件支持 |
 | `ModeAuto`（默认） | 全平台 | 先试 Event，失败降级 Polling | 不确定时这是好默认 |
 
 ## Close 流程
@@ -60,10 +58,11 @@ Close()
   ├─ closeOnce.Do:
   │    ├─ b.closed = true            # 后续 Send/Status/... 返回 ErrBusClosed
   │    ├─ close(b.closing)           # 通知 reader 退出
+  │    ├─ (SLCAN) C + close(COMx)    # 关闭通道并唤醒串口 Read
   │    ├─ (Event) SetEvent(abort)    # 唤醒阻塞在 WaitFor... 的 reader
   │    ├─ for range b.rxCh { ... }   # 等 reader 关闭 rxCh
   │    ├─ (Event) CloseHandle(...)   # 释放 event 句柄
-  │    ├─ CAN_Uninitialize           # 释放 PCAN 通道
+  │    ├─ CAN_Uninitialize           # 释放 PCAN/SocketCAN 通道
   │    └─ close(b.errCh)             # Errors() 收到关闭信号
   ▼
 ```

@@ -58,6 +58,13 @@ if errors.Is(err, gocan.ErrBusOff) {
 3. **Polling 间隔太长**：默认 `1ms` 已经很激进，但你显式设大了。
 4. **接收端走 Event 模式但驱动版本太老不支持**：用 `WithLogger` 注入 logger，库会打 `event mode unavailable, falling back to polling: ...`。
 
+## CANable 2.0 串口问题
+
+- `OpenSLCANFD` 报端口不存在或被占用：在设备管理器确认 `COMx`，并关闭串口监视器等占用程序。
+- 能打开但没有帧：确认刷入的是 `canable2-fw` SLCAN 固件，不是 candleLight/gs_usb 固件。
+- 配置错误没有立即返回：官方固件不提供命令 ACK/NACK，这是协议限制；优先核对 `Sx` / `Y2|Y5` 与总线节点是否一致。
+- `Status` / `SetFilter` 返回 `ErrNotSupported`：CANable 2.0 SLCAN-FD 固件没有可安全并发使用的对应命令。
+
 ## `QXMTFULL`（`0x00000080`）发送队列满
 
 发太快，PCAN 内部队列满了。
@@ -88,7 +95,8 @@ for {
 A：本库就是不用 cgo——通过 `golang.org/x/sys/windows` 的 syscall 直接调 DLL 导出函数。完全纯 Go。
 
 **Q：Linux 上为什么 Open 失败？**
-A：本库专为 Windows + PCAN-USB 设计。Linux 用 SocketCAN（`github.com/brutella/can` 等）。详见 `docs/platform-support.md`。
+A：Linux 网络 CAN 应使用 `Open(SocketCAN("can0"))`；串口 CANable 可使用
+`OpenSLCAN` / `OpenSLCANFD`。详见 `docs/platform-support.md`。
 
 **Q：能多个 goroutine 同时 Send 吗？**
 A：可以。`Send` 直接调底层 `CAN_Write`，PCAN 驱动内部串行化。

@@ -84,6 +84,7 @@ type config struct {
 	rxBufferSize  int
 	errBufferSize int
 	logger        Logger
+	slcan         slcanConfig
 	linux         linuxConfig // 仅 Linux 构建有真实字段；其他平台为空 struct
 }
 
@@ -96,6 +97,7 @@ func newDefaultConfig() *config {
 		rxBufferSize:  defaultRxBufferSize,
 		errBufferSize: defaultErrBufferSize,
 		logger:        noopLogger{},
+		slcan:         defaultSLCANConfig(),
 	}
 }
 

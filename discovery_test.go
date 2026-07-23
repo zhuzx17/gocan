@@ -12,6 +12,9 @@ func TestChannelBackends(t *testing.T) {
 	if BackendSocketCAN != "socketcan" {
 		t.Fatalf("BackendSocketCAN = %q, want socketcan", BackendSocketCAN)
 	}
+	if BackendSLCAN != "slcan" {
+		t.Fatalf("BackendSLCAN = %q, want slcan", BackendSLCAN)
+	}
 }
 
 func TestLookupChannels_DoesNotPanic(t *testing.T) {

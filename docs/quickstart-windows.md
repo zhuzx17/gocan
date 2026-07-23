@@ -1,6 +1,7 @@
 # Windows 快速启动
 
-5 分钟在 Windows 上跑通 gocan 第一帧。涵盖 PCAN 驱动安装、Classical CAN、CAN FD、接收模式与多通道。
+5 分钟在 Windows 上跑通 gocan 第一帧。本文先介绍 PCAN；使用 CANable 2.0
+SLCAN-FD 固件时直接跳到[第 9 节](#9-canable-20-slcan-fd)。
 
 ## 1. 安装 PEAK PCAN 驱动
 
@@ -193,3 +194,24 @@ func main() {
 - Option 速查 + 平台对照：[`docs/options.md`](options.md)
 - FD 比特率字段：[`docs/can-fd.md`](can-fd.md)
 - 故障排查：[`docs/troubleshooting.md`](troubleshooting.md)
+
+## 9. CANable 2.0 SLCAN-FD
+
+确认设备刷入的是官方 `canable2-fw` SLCAN 固件，而不是 candleLight/gs_usb 固件。
+在设备管理器中找到对应的 `COM` 端口，然后直接打开：
+
+```go
+bus, err := gocan.OpenSLCANFD(
+    "COM5",
+    gocan.SLCANBitrate500K,
+    gocan.SLCANDataBitrate2M,
+)
+if err != nil {
+    log.Fatal(err)
+}
+defer bus.Close()
+```
+
+`OpenSLCANFD` 返回标准 `*gocan.Bus`，因此 `Send`、`ReadOne`、`Receive`、
+`SendMany` 和 `Errors` 的用法与 PCAN 完全相同。端口发现、完整收发示例、比特率
+预设和固件限制见 [`docs/slcan-windows.md`](slcan-windows.md)。

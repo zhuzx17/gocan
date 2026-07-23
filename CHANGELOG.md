@@ -23,6 +23,10 @@
 
 ### Added
 
+- CANable 2.0 SLCAN-FD 串口后端：`OpenSLCAN` / `OpenSLCANFD`，支持 Classical、
+  Extended、RTR、CAN FD、BRS 和最大 64 字节载荷。
+- SLCAN 串口发现：`LookupSLCANPorts()`，可通过官方 VID:PID `16D0:117E` 识别
+  CANable 2.0；新增静默模式、自动重传和串口速率选项。
 - BusGroup：按业务名字管理多个 `*Bus`，提供合流接收 (`Receive() <-chan SourcedFrame`)、聚合关闭 (`*GroupCloseError`)、`Each` 遍历等方法。
 - Linux SocketCAN 自定义参数：`WithLoopback` / `WithRecvOwnMsgs` / `WithErrFilter` / `WithJoinFilters` / `WithRecvTimestamp` / `WithSocketBuffers` / `WithRWTimeout`。
 - 运行期方法：`(b *Bus) SetErrFilter(uint32)` / `SetJoinFilters(bool)`，Linux 真实生效，其它平台返回 `ErrNotSupported`。
