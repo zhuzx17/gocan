@@ -25,6 +25,9 @@
 
 详细说明见 [`slcan-windows.md`](slcan-windows.md)。
 
+Windows/Linux 返回 USB VID/PID 等详细信息；macOS 为保持无 CGO 构建，端口枚举只
+保证填写 `Name`，其余硬件识别字段为空。
+
 ## DLL 加载策略
 
 Windows 上库通过 `golang.org/x/sys/windows.LazyDLL` 加载 `PCANBasic.dll`。
