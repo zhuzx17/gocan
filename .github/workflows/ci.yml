@@ -98,12 +98,10 @@ jobs:
               printf '%s\n' "$output"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
-            while IFS= read -r line; do
-              line=${line//'%'/'%25'}
-              line=${line//$'\r'/'%0D'}
-              line=${line//$'\n'/'%0A'}
-              echo "::error title=go test -race::$line"
-            done <<< "$output"
+            output=${output//'%'/'%25'}
+            output=${output//$'\r'/'%0D'}
+            output=${output//$'\n'/'%0A'}
+            echo "::error title=go test -race::$output"
             exit "$status"
           fi
 
