@@ -7,8 +7,12 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-24
+
 ### Fixed
 
+- macOS 无 CGO 交叉编译不再依赖串口库的 IOKit 详细枚举；`LookupSLCANPorts()`
+  在该平台回退到基础端口列表。
 - Linux SocketCAN 后端发送 CAN FD 帧时未置 `CANFD_FDF` 标志，导致内核按
   Classical CAN 处理，>8 字节 payload 被截断/丢弃。修复后所有 FD 帧发送均
   正确带 FDF 位；BRS / ESI 仍按 `Frame.Flags` 可选叠加。
@@ -23,14 +27,16 @@
 
 ### Added
 
-- CANable 2.0 SLCAN-FD 串口后端：`OpenSLCAN` / `OpenSLCANFD`，支持 Classical、
-  Extended、RTR、CAN FD、BRS 和最大 64 字节载荷。
+- CANable 2.0 SLCAN-FD 串口后端：`OpenSLCAN` / `OpenSLCANFD`、
+  `BusGroup.AddSLCAN` / `BusGroup.AddSLCANFD`，支持 Classical、Extended、RTR、
+  CAN FD、BRS 和最大 64 字节载荷。
 - SLCAN 串口发现：`LookupSLCANPorts()`，可通过官方 VID:PID `16D0:117E` 识别
   CANable 2.0；新增静默模式、自动重传和串口速率选项。
 - BusGroup：按业务名字管理多个 `*Bus`，提供合流接收 (`Receive() <-chan SourcedFrame`)、聚合关闭 (`*GroupCloseError`)、`Each` 遍历等方法。
 - Linux SocketCAN 自定义参数：`WithLoopback` / `WithRecvOwnMsgs` / `WithErrFilter` / `WithJoinFilters` / `WithRecvTimestamp` / `WithSocketBuffers` / `WithRWTimeout`。
 - 运行期方法：`(b *Bus) SetErrFilter(uint32)` / `SetJoinFilters(bool)`，Linux 真实生效，其它平台返回 `ErrNotSupported`。
-- 4 个新示例：`examples/11_busgroup_socketcan` / `12_busgroup_fan_in` / `13_socketcan_loopback` / `14_socketcan_advanced`。
+- 5 个新示例：`examples/11_busgroup_socketcan` / `12_busgroup_fan_in` /
+  `13_socketcan_loopback` / `14_socketcan_advanced` / `15_canable_slcan_fd`。
 - 工具：`scripts/setup-vcan.sh` 一键创建 / 销毁 vcan 接口；`justfile` 别名 `vcan-up` / `vcan-down`。
 
 ### Documentation
@@ -99,4 +105,6 @@
 - 测试覆盖率 80%+，`-race` 通过
 - GitHub Actions：Linux runner 跑 vet + golangci-lint + race test + 跨平台编译（windows/amd64+386）；Windows runner 跑 vet + 普通 test
 
+[Unreleased]: https://github.com/zhuzx17/gocan/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/zhuzx17/gocan/releases/tag/v1.0.0
 [0.1.0]: https://github.com/zhuzx17/gocan/releases/tag/v0.1.0

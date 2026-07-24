@@ -127,7 +127,7 @@ const (
 	PCAN_MESSAGE_STATUS   TPCANMessageType = 0x80 // 状态信息帧
 )
 
-// SetValue/GetValue 用到的参数。v0.1 仅列出实际用到的。
+// SetValue/GetValue 用到的参数。仅列出当前实际用到的值。
 const (
 	PCAN_DEVICE_NUMBER       TPCANParameter = 0x01
 	PCAN_5VOLTS_POWER        TPCANParameter = 0x02
