@@ -86,7 +86,26 @@ jobs:
           cache: true
 
       - name: go test (race)
-        run: go test -race ./...
+        run: |
+          set +e
+          output=$(go test -race ./... 2>&1)
+          status=$?
+          printf '%s\n' "$output"
+          if [ "$status" -ne 0 ]; then
+            {
+              echo '### go test -race failure'
+              echo '```text'
+              printf '%s\n' "$output"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            while IFS= read -r line; do
+              line=${line//'%'/'%25'}
+              line=${line//$'\r'/'%0D'}
+              line=${line//$'\n'/'%0A'}
+              echo "::error title=go test -race::$line"
+            done <<< "$output"
+            exit "$status"
+          fi
 
   # 第三步：单独的覆盖率 job（仅 Linux + 最新 Go，上传到 Codecov）
   coverage:
