@@ -9,17 +9,20 @@ import (
 )
 
 // withFakeOpener 替换 BusGroup 内部的 Open 钩子为基于 fakeAdapter 的版本，
-// 并在测试结束时恢复原始 Open。返回 fakeAdapter 以便测试断言。
+// 默认强制轮询模式，避免 Windows Event 模式等待 fake 不会触发的事件。
+// 测试结束时恢复原始 Open。返回 fakeAdapter 以便测试断言。
 func withFakeOpener(t *testing.T) *fakeAdapter {
 	t.Helper()
 	fake := newFakeAdapter()
 	prevOpen := busOpenFn
 	prevOpenFD := busOpenFDFn
 	busOpenFn = func(ch Channel, opts ...Option) (*Bus, error) {
-		return openWith(fake, ch, false, "", opts...)
+		allOpts := append([]Option{WithReceiveMode(ModePolling)}, opts...)
+		return openWith(fake, ch, false, "", allOpts...)
 	}
 	busOpenFDFn = func(ch Channel, br string, opts ...Option) (*Bus, error) {
-		return openWith(fake, ch, true, br, opts...)
+		allOpts := append([]Option{WithReceiveMode(ModePolling)}, opts...)
+		return openWith(fake, ch, true, br, allOpts...)
 	}
 	t.Cleanup(func() {
 		busOpenFn = prevOpen
