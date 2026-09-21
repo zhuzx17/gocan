@@ -23,7 +23,9 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: '1.23'
-          cache: true
+          # The persistent runner volume already retains Go caches. GitHub's
+          # remote cache endpoint is unreliable from this runner's network.
+          cache: false
       - name: Verify local runner and repository checkout
         shell: bash
         run: |
