@@ -1,0 +1,43 @@
+name: gocan self-hosted check
+
+on:
+  push:
+    branches: [codex/test-gocan-runner-20260921]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: [self-hosted, linux, x64, gocan]
+    timeout-minutes: 15
+    env:
+      CGO_ENABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+      - name: Verify local runner and repository checkout
+        shell: bash
+        run: |
+          test "$RUNNER_NAME" = "gocan-local-01"
+          test -f /.dockerenv
+          id
+          echo "Runner: $RUNNER_NAME"
+          echo "OS: $RUNNER_OS / $RUNNER_ARCH"
+          echo "Repository: $GITHUB_REPOSITORY"
+          pwd
+          uname -a
+          git rev-parse --short HEAD
+          go version
+      - name: Static analysis
+        run: go vet ./...
+      - name: Unit tests with race detector
+        run: go test -race -v ./...
+      - name: Build library and examples
+        run: go build ./...
