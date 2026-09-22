@@ -372,6 +372,16 @@ type miniCANFDLib struct {
 	runtimeExit func() int32
 }
 
+// miniCANFDWindowsSetFilter adapts the public seven-argument filter contract
+// to the six-argument Windows HCanbus.dll ABI. The Windows DLL identifies the
+// device by devNum only; channel is intentionally ignored.
+func miniCANFDWindowsSetFilter(
+	setFilter func(uint32, int8, int8, uint32, uint32, int8) int32,
+	device uint32, _ uint32, number, typ int8, id, mask uint32, enable int8,
+) int32 {
+	return setFilter(device, number, typ, id, mask, enable)
+}
+
 func (m *miniCANFDLib) readDeviceInfo(index uint, info *MiniCANFDDeviceInfo) error {
 	var rawInfo miniCANFDDevInfo
 	if status := m.readDevInfo(uint32(index), &rawInfo); status != 0 {
