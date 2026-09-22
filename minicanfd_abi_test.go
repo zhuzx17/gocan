@@ -15,10 +15,11 @@ func TestMiniCANFDPlatformConfigLayouts(t *testing.T) {
 
 	var windowsConfig miniCANFDWindowsConfig
 	for name, gotWant := range map[string]struct{ got, want uintptr }{
-		"Config":   {unsafe.Offsetof(windowsConfig.Config), 16},
-		"Model":    {unsafe.Offsetof(windowsConfig.Model), 17},
-		"Cantype":  {unsafe.Offsetof(windowsConfig.Cantype), 18},
-		"Reserved": {unsafe.Offsetof(windowsConfig.Reserved), 19},
+		"NomPre":  {unsafe.Offsetof(windowsConfig.NomPre), 8},
+		"DatSJW":  {unsafe.Offsetof(windowsConfig.DatSJW), 16},
+		"Config":  {unsafe.Offsetof(windowsConfig.Config), 17},
+		"Model":   {unsafe.Offsetof(windowsConfig.Model), 18},
+		"Cantype": {unsafe.Offsetof(windowsConfig.Cantype), 19},
 	} {
 		if gotWant.got != gotWant.want {
 			t.Errorf("Windows config %s offset = %d, want %d", name, gotWant.got, gotWant.want)
@@ -39,11 +40,11 @@ func TestMiniCANFDWindowsConfigConversion(t *testing.T) {
 	if converted.NomBaud != logical.NomBaud || converted.DatBaud != logical.DatBaud {
 		t.Fatalf("bitrate conversion = %#v", converted)
 	}
-	if converted.NomPre != 0x34 {
-		t.Fatalf("Windows NomPre = %#x, want low byte 0x34", converted.NomPre)
+	if converted.NomPre != logical.NomPre {
+		t.Fatalf("Windows NomPre = %#x, want %#x", converted.NomPre, logical.NomPre)
 	}
-	if converted.Config != 0x06 || converted.Model != 0 || converted.Cantype != 1 || converted.Reserved != 0 {
-		t.Fatalf("Windows control fields = Config %#x Model %#x Cantype %#x Reserved %#x", converted.Config, converted.Model, converted.Cantype, converted.Reserved)
+	if converted.Config != 0x06 || converted.Model != 0 || converted.Cantype != 1 {
+		t.Fatalf("Windows control fields = Config %#x Model %#x Cantype %#x", converted.Config, converted.Model, converted.Cantype)
 	}
 }
 
