@@ -44,6 +44,7 @@ func registerMiniCANFDFuncs(handle uintptr, lib *miniCANFDLib) (err error) {
 	var open func(uint32) int32
 	var close func(uint32) int32
 	var init func(uint32, *miniCANFDWindowsConfig) int32
+	var setFilter func(uint32, int8, int8, uint32, uint32, int8) int32
 	var tx func(uint32, *miniCANFDMsg, uint32, int32) int32
 	var rx func(uint32, *miniCANFDMsg, uint32, int32) int32
 	for _, symbol := range []struct {
@@ -63,11 +64,16 @@ func registerMiniCANFDFuncs(handle uintptr, lib *miniCANFDLib) (err error) {
 		purego.RegisterLibFunc(target, handle, name)
 	}
 	registerOptional(&lib.reset, "CAN_Reset")
-	registerOptional(&lib.setFilter, "CAN_SetFilter")
+	registerOptional(&setFilter, "CAN_SetFilter")
 	registerOptional(&lib.runtimeInit, "LibCANbus_Init")
 	registerOptional(&lib.runtimeExit, "LibCANbus_Exit")
 	lib.openDevice = func(device, _ uint32) int32 { return open(device) }
 	lib.closeDevice = func(device, _ uint32) int32 { return close(device) }
+	if setFilter != nil {
+		lib.setFilter = func(device, channel uint32, number, typ int8, id, mask uint32, enable int8) int32 {
+			return miniCANFDWindowsSetFilter(setFilter, device, channel, number, typ, id, mask, enable)
+		}
+	}
 	lib.initFD = func(device, _ uint32, cfg *miniCANFDConfig) int32 {
 		windowsConfig := miniCANFDWindowsConfigFrom(cfg)
 		return init(device, &windowsConfig)
