@@ -276,6 +276,66 @@ type miniCANFDConfig struct {
 	Cantype  uint8
 }
 
+// miniCANFDLinuxConfig matches the CanFD_Config layout used by the Linux
+// libcanbus.so ABI. Keep this separate from the Windows layout: the vendor
+// Windows DLL reads NomPre as one byte and includes a trailing Reserved byte.
+type miniCANFDLinuxConfig struct {
+	NomBaud  uint32
+	DatBaud  uint32
+	NomPre   uint16
+	NomTseg1 uint8
+	NomTseg2 uint8
+	NomSJW   uint8
+	DatPre   uint8
+	DatTseg1 uint8
+	DatTseg2 uint8
+	DatSJW   uint8
+	Config   uint8
+	Model    uint8
+	Cantype  uint8
+}
+
+// miniCANFDWindowsConfig matches the byte-oriented CanFD_Config consumed by
+// the Windows HCanbus.dll. Its size and offsets are part of the vendor ABI.
+type miniCANFDWindowsConfig struct {
+	NomBaud  uint32
+	DatBaud  uint32
+	NomPre   uint8
+	NomTseg1 uint8
+	NomTseg2 uint8
+	NomSJW   uint8
+	DatPre   uint8
+	DatTseg1 uint8
+	DatTseg2 uint8
+	DatSJW   uint8
+	Config   uint8
+	Model    uint8
+	Cantype  uint8
+	Reserved uint8
+}
+
+func miniCANFDLinuxConfigFrom(config *miniCANFDConfig) miniCANFDLinuxConfig {
+	return miniCANFDLinuxConfig{
+		NomBaud: config.NomBaud, DatBaud: config.DatBaud,
+		NomPre: config.NomPre, NomTseg1: config.NomTseg1,
+		NomTseg2: config.NomTseg2, NomSJW: config.NomSJW,
+		DatPre: config.DatPre, DatTseg1: config.DatTseg1,
+		DatTseg2: config.DatTseg2, DatSJW: config.DatSJW,
+		Config: config.Config, Model: config.Model, Cantype: config.Cantype,
+	}
+}
+
+func miniCANFDWindowsConfigFrom(config *miniCANFDConfig) miniCANFDWindowsConfig {
+	return miniCANFDWindowsConfig{
+		NomBaud: config.NomBaud, DatBaud: config.DatBaud,
+		NomPre: uint8(config.NomPre), NomTseg1: config.NomTseg1,
+		NomTseg2: config.NomTseg2, NomSJW: config.NomSJW,
+		DatPre: config.DatPre, DatTseg1: config.DatTseg1,
+		DatTseg2: config.DatTseg2, DatSJW: config.DatSJW,
+		Config: config.Config, Model: config.Model, Cantype: config.Cantype,
+	}
+}
+
 type miniCANFDMsg struct {
 	ID         uint32
 	TimeStamp  uint32

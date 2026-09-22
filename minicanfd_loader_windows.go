@@ -43,7 +43,7 @@ func registerMiniCANFDFuncs(handle uintptr, lib *miniCANFDLib) (err error) {
 	}
 	var open func(uint32) int32
 	var close func(uint32) int32
-	var init func(uint32, *miniCANFDConfig) int32
+	var init func(uint32, *miniCANFDWindowsConfig) int32
 	var tx func(uint32, *miniCANFDMsg, uint32, int32) int32
 	var rx func(uint32, *miniCANFDMsg, uint32, int32) int32
 	for _, symbol := range []struct {
@@ -68,7 +68,10 @@ func registerMiniCANFDFuncs(handle uintptr, lib *miniCANFDLib) (err error) {
 	registerOptional(&lib.runtimeExit, "LibCANbus_Exit")
 	lib.openDevice = func(device, _ uint32) int32 { return open(device) }
 	lib.closeDevice = func(device, _ uint32) int32 { return close(device) }
-	lib.initFD = func(device, _ uint32, cfg *miniCANFDConfig) int32 { return init(device, cfg) }
+	lib.initFD = func(device, _ uint32, cfg *miniCANFDConfig) int32 {
+		windowsConfig := miniCANFDWindowsConfigFrom(cfg)
+		return init(device, &windowsConfig)
+	}
 	lib.transmit = func(device, _ uint32, msg *miniCANFDMsg, count uint32, timeout int32) int32 {
 		return tx(device, msg, count, timeout)
 	}
