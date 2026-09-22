@@ -122,6 +122,11 @@ bus, err := gocan.OpenMiniCANFD(gocan.MiniCANFDConfig{
 库路径也可通过 `MINICANFD_LIBRARY_PATH` 或 `LINKERBOT_CANFD_LIB` 指定。厂商
 二进制不随 gocan 发布包提供，需由应用按目标平台分发。
 
+Windows 使用厂商新版 `HCanbus.dll` 时，必须使用与 DLL 同一版本的
+`CanFD_Config` ABI：`NomPre` 为 16 位字段，控制字段依次位于偏移 17、18、19。
+请不要将旧版 DLL 与当前 gocan 混用；应用发布包应同时替换为匹配架构和 SDK
+版本的 DLL。
+
 MiniCANFD 的动态库按路径在进程内共享：首次使用时调用厂商
 `LibCANbus_Init`（旧版库未导出该符号时兼容运行），最后一个总线关闭时调用
 `LibCANbus_Exit`。应用重连应完整执行 `Bus.Close` 后重新调用

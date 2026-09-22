@@ -277,8 +277,8 @@ type miniCANFDConfig struct {
 }
 
 // miniCANFDLinuxConfig matches the CanFD_Config layout used by the Linux
-// libcanbus.so ABI. Keep this separate from the Windows layout: the vendor
-// Windows DLL reads NomPre as one byte and includes a trailing Reserved byte.
+// libcanbus.so ABI. Keep this separate from the Windows layout so an ABI
+// change on one platform cannot silently change the other platform's call.
 type miniCANFDLinuxConfig struct {
 	NomBaud  uint32
 	DatBaud  uint32
@@ -295,12 +295,13 @@ type miniCANFDLinuxConfig struct {
 	Cantype  uint8
 }
 
-// miniCANFDWindowsConfig matches the byte-oriented CanFD_Config consumed by
-// the Windows HCanbus.dll. Its size and offsets are part of the vendor ABI.
+// miniCANFDWindowsConfig matches the CanFD_Config layout consumed by the
+// current Windows HCanbus.dll. NomPre is a 16-bit field and the final field is
+// Cantype; there is no trailing Reserved byte in this ABI.
 type miniCANFDWindowsConfig struct {
 	NomBaud  uint32
 	DatBaud  uint32
-	NomPre   uint8
+	NomPre   uint16
 	NomTseg1 uint8
 	NomTseg2 uint8
 	NomSJW   uint8
@@ -311,7 +312,6 @@ type miniCANFDWindowsConfig struct {
 	Config   uint8
 	Model    uint8
 	Cantype  uint8
-	Reserved uint8
 }
 
 func miniCANFDLinuxConfigFrom(config *miniCANFDConfig) miniCANFDLinuxConfig {
@@ -328,7 +328,7 @@ func miniCANFDLinuxConfigFrom(config *miniCANFDConfig) miniCANFDLinuxConfig {
 func miniCANFDWindowsConfigFrom(config *miniCANFDConfig) miniCANFDWindowsConfig {
 	return miniCANFDWindowsConfig{
 		NomBaud: config.NomBaud, DatBaud: config.DatBaud,
-		NomPre: uint8(config.NomPre), NomTseg1: config.NomTseg1,
+		NomPre: config.NomPre, NomTseg1: config.NomTseg1,
 		NomTseg2: config.NomTseg2, NomSJW: config.NomSJW,
 		DatPre: config.DatPre, DatTseg1: config.DatTseg1,
 		DatTseg2: config.DatTseg2, DatSJW: config.DatSJW,
